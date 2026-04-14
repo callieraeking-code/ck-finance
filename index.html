@@ -400,9 +400,66 @@ nav { padding: 16px 12px; flex: 1; }
   .chat-sidebar { display: none; }
   .view { padding: 20px 16px; }
 }
+
+<style>
+#pin-screen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: #0E0E0E;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  flex-direction: column;
+  gap: 24px;
+}
+.pin-logo { font-family: 'Playfair Display', serif; font-size: 28px; color: #E8B84B; letter-spacing: 0.02em; }
+.pin-sub { font-size: 13px; color: #5A5652; letter-spacing: 0.08em; text-transform: uppercase; margin-top: -16px; }
+.pin-dots { display: flex; gap: 14px; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; background: #252525; border: 1px solid #3a3a3a; transition: background 0.15s; }
+.pin-dot.filled { background: #C8922A; border-color: #C8922A; }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; }
+.pin-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #1E1E1E; border: 1px solid #2a2a2a;
+  color: #F0EDE8; font-size: 20px; font-family: 'Inter', sans-serif;
+  cursor: pointer; transition: background 0.1s, transform 0.1s;
+}
+.pin-btn:hover { background: #252525; }
+.pin-btn:active { transform: scale(0.94); background: #2a2a2a; }
+.pin-btn.del { font-size: 16px; color: #5A5652; }
+.pin-error { font-size: 13px; color: #E76F51; height: 18px; text-align: center; }
+.pin-change { font-size: 11px; color: #3a3a3a; text-align: center; cursor: pointer; text-decoration: underline; }
+.pin-change:hover { color: #5A5652; }
+</style>
 </style>
 </head>
 <body>
+
+<div id="pin-screen">
+  <div class="pin-logo">CK Finance</div>
+  <div class="pin-sub">Personal Advisor</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinKey('1')">1</button>
+    <button class="pin-btn" onclick="pinKey('2')">2</button>
+    <button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button>
+    <button class="pin-btn" onclick="pinKey('5')">5</button>
+    <button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button>
+    <button class="pin-btn" onclick="pinKey('8')">8</button>
+    <button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn del" onclick="pinKey('c')">✕</button>
+    <button class="pin-btn" onclick="pinKey('0')">0</button>
+    <button class="pin-btn del" onclick="pinKey('del')">⌫</button>
+  </div>
+  <div class="pin-change" onclick="changePin()">change PIN</div>
+</div>
+
 
 <div class="layout">
 
@@ -1525,6 +1582,79 @@ function seedIncome() {
   saveAll();
 }
 
+
+// ══════════════════════════════════════════════
+// PIN LOCK
+// ══════════════════════════════════════════════
+const DEFAULT_PIN = '2026';
+let pinBuffer = '';
+
+function checkPinAuth() {
+  const stored = localStorage.getItem('ck_pin_auth');
+  const pin    = localStorage.getItem('ck_pin') || DEFAULT_PIN;
+  if (stored) {
+    const { expires } = JSON.parse(stored);
+    if (Date.now() < expires) {
+      document.getElementById('pin-screen').style.display = 'none';
+      return true;
+    }
+  }
+  return false;
+}
+
+function pinKey(k) {
+  const pin = localStorage.getItem('ck_pin') || DEFAULT_PIN;
+  if (k === 'del') {
+    pinBuffer = pinBuffer.slice(0, -1);
+  } else if (k === 'c') {
+    pinBuffer = '';
+  } else if (pinBuffer.length < 4) {
+    pinBuffer += k;
+  }
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    if (pinBuffer === pin) {
+      localStorage.setItem('ck_pin_auth', JSON.stringify({ expires: Date.now() + 24*60*60*1000 }));
+      document.getElementById('pin-screen').style.display = 'none';
+      pinBuffer = '';
+      updatePinDots();
+    } else {
+      document.getElementById('pin-error').textContent = 'incorrect PIN';
+      setTimeout(() => {
+        pinBuffer = '';
+        updatePinDots();
+        document.getElementById('pin-error').textContent = '';
+      }, 800);
+    }
+  }
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function changePin() {
+  const newPin = prompt('Enter new 4-digit PIN:');
+  if (newPin && /^\d{4}$/.test(newPin)) {
+    localStorage.setItem('ck_pin', newPin);
+    alert('PIN updated to ' + newPin + ' — remember it!');
+  } else if (newPin) {
+    alert('PIN must be exactly 4 digits');
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-screen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+  if (e.key === 'Backspace') pinKey('del');
+  if (e.key === 'Escape') pinKey('c');
+});
+
+// Check auth on load
+checkPinAuth();
+
 // ══════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════
@@ -1535,3 +1665,4 @@ if (SCRIPT_URL) loadFromSheets();
 </script>
 </body>
 </html>
+
