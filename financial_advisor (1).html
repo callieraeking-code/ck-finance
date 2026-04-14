@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CK · Financial Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #0E0E0E;
+  --bg2: #161616;
+  --bg3: #1E1E1E;
+  --bg4: #252525;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #F0EDE8;
+  --text2: #9A9490;
+  --text3: #5A5652;
+  --gold: #C8922A;
+  --gold2: #E8B84B;
+  --gold-dim: rgba(200,146,42,0.15);
+  --gold-border: rgba(200,146,42,0.3);
+  --teal: #2A9D8F;
+  --teal-dim: rgba(42,157,143,0.12);
+  --red: #E76F51;
+  --red-dim: rgba(231,111,81,0.12);
+  --green: #57CC99;
+  --green-dim: rgba(87,204,153,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── SIDEBAR ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+
+.logo-area {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--gold2);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.logo-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+nav { padding: 16px 12px; flex: 1; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 2px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--gold-dim); color: var(--gold2); border: 1px solid var(--gold-border); }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+}
+.sync-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text3);
+  margin-right: 6px;
+  vertical-align: middle;
+  transition: background 0.3s;
+}
+.sync-dot.ok { background: var(--green); }
+.sync-dot.err { background: var(--red); }
+
+/* ── MAIN ── */
+.main { margin-left: 220px; flex: 1; min-height: 100vh; }
+
+.view { display: none; padding: 32px; max-width: 1000px; }
+.view.active { display: block; }
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.page-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.metric {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.metric.gold { border-top: 2px solid var(--gold); }
+.metric.teal { border-top: 2px solid var(--teal); }
+.metric.green { border-top: 2px solid var(--green); }
+.metric.red { border-top: 2px solid var(--red); }
+.metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.metric-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: var(--text); }
+.metric-val.gold { color: var(--gold2); }
+.metric-val.green { color: var(--green); }
+.metric-val.red { color: var(--red); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* ── BTC GOAL BAR ── */
+.goal-bar-wrap {
+  background: var(--bg3);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+  margin: 12px 0 8px;
+}
+.goal-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+/* ── FORMS ── */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.full { grid-column: 1 / -1; }
+.field label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text3);
+}
+.field input, .field select, .field textarea {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus { border-color: var(--gold); }
+.field select option { background: var(--bg3); }
+.sym-wrap { position: relative; }
+.sym-wrap .sym { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text3); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.sym-wrap input { padding-left: 26px; }
+
+.btn {
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--gold); color: #1a1000; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+.btn-full { width: 100%; margin-top: 4px; padding: 11px; }
+
+/* ── CURRENCY TOGGLE ── */
+.cur-toggle { display: flex; border: 1px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; width: fit-content; margin-bottom: 16px; }
+.cur-btn { padding: 7px 18px; font-size: 12px; font-weight: 500; font-family: 'JetBrains Mono', monospace; border: none; background: none; color: var(--text2); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.cur-btn.active { background: var(--gold); color: #1a1000; }
+
+/* ── ENTRY ROWS ── */
+.entry-list { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
+.entry-row {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+.entry-row:hover { border-color: var(--border2); }
+.e-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); min-width: 48px; }
+.e-cat { font-size: 13px; color: var(--text); flex: 1; }
+.e-note { font-size: 12px; color: var(--text3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.e-amt { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.e-amt.usd { color: var(--teal); }
+.e-amt.mxn { color: var(--gold); }
+.e-amt.income { color: var(--green); }
+.pill { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+.pill.usd { background: rgba(42,157,143,0.15); color: var(--teal); }
+.pill.mxn { background: var(--gold-dim); color: var(--gold2); }
+.pill.income { background: var(--green-dim); color: var(--green); }
+.btn-del { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; padding: 0 4px; border-radius: 4px; line-height: 1; transition: color 0.15s; }
+.btn-del:hover { color: var(--red); }
+
+/* ── CHART CARDS ── */
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; }
+.chart-card h3 { font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 16px; color: var(--text); }
+.chart-wrap { position: relative; width: 100%; height: 240px; }
+
+/* ── AI CHAT ── */
+.chat-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; height: calc(100vh - 120px); }
+.chat-main { display: flex; flex-direction: column; }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+.msg { display: flex; gap: 12px; }
+.msg.user { flex-direction: row-reverse; }
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0;
+}
+.msg.ai .msg-avatar { background: var(--gold-dim); color: var(--gold2); border: 1px solid var(--gold-border); }
+.msg.user .msg-avatar { background: var(--bg4); color: var(--text2); }
+.msg-bubble {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.msg.ai .msg-bubble { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 4px; }
+.msg.user .msg-bubble { background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--text); border-top-right-radius: 4px; }
+.msg-bubble strong { color: var(--gold2); font-weight: 600; }
+.msg-bubble em { color: var(--text2); font-style: normal; }
+
+.chat-input-area { display: flex; gap: 10px; }
+.chat-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  height: 48px;
+  transition: border-color 0.15s, height 0.1s;
+}
+.chat-input:focus { border-color: var(--gold); }
+.btn-send {
+  padding: 0 20px;
+  background: var(--gold);
+  color: #1a1000;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 18px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.btn-send:hover { opacity: 0.85; }
+.btn-send:disabled { opacity: 0.4; cursor: default; }
+
+.chat-sidebar { display: flex; flex-direction: column; gap: 12px; }
+.chat-context-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; font-size: 12px; }
+.chat-context-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); margin-bottom: 10px; }
+.ctx-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); color: var(--text2); }
+.ctx-row:last-child { border-bottom: none; }
+.ctx-row span:last-child { font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+.prompt-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+}
+.prompt-chip:hover { border-color: var(--gold-border); color: var(--gold2); }
+
+.typing { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: blink 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0.3} 40%{opacity:1} }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); padding: 8px 10px; border-bottom: 1px solid var(--border2); }
+.data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text2); }
+.data-table td:first-child { color: var(--text); }
+.data-table tr:last-child td { border-bottom: none; }
+.bar-bg { background: var(--bg4); border-radius: 3px; height: 5px; }
+.bar-fill { height: 100%; border-radius: 3px; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab-btn { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text3); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+.tab-btn.active { color: var(--gold2); border-bottom-color: var(--gold); }
+.tab-btn:hover { color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg4); border: 1px solid var(--border2); color: var(--text); padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; transform: translateY(80px); transition: transform 0.3s; z-index: 999; pointer-events: none; }
+.toast.show { transform: translateY(0); }
+
+/* ── CONFIG BANNER ── */
+.config-banner { background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: var(--gold2); display: none; }
+.config-banner.show { display: flex; align-items: center; gap: 10px; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; min-width: 60px; }
+  .logo-area, .nav-item span, .logo-sub, .sidebar-footer { display: none; }
+  .main { margin-left: 60px; }
+  .chat-layout { grid-template-columns: 1fr; }
+  .chat-sidebar { display: none; }
+  .view { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo">CK Finance</div>
+    <div class="logo-sub">Personal Advisor</div>
+  </div>
+  <nav>
+    <button class="nav-item active" onclick="switchView('advisor')">
+      <span class="nav-icon">✦</span><span>Advisor</span>
+    </button>
+    <button class="nav-item" onclick="switchView('dashboard')">
+      <span class="nav-icon">◈</span><span>Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="switchView('expenses')">
+      <span class="nav-icon">↓</span><span>Expenses</span>
+    </button>
+    <button class="nav-item" onclick="switchView('income')">
+      <span class="nav-icon">↑</span><span>Income</span>
+    </button>
+    <button class="nav-item" onclick="switchView('balance')">
+      <span class="nav-icon">◻</span><span>Balance Sheet</span>
+    </button>
+    <button class="nav-item" onclick="switchView('bitcoin')">
+      <span class="nav-icon">₿</span><span>Bitcoin Goal</span>
+    </button>
+    <button class="nav-item" onclick="switchView('settings')">
+      <span class="nav-icon">⚙</span><span>Settings</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-label">not connected</span>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+<!-- CONFIG BANNER -->
+<div class="config-banner show" id="config-banner">
+  ⚙ Connect your Google Sheet and Claude API key in <strong style="cursor:pointer;text-decoration:underline;" onclick="switchView('settings')">Settings</strong> to get started.
+</div>
+
+<!-- ════ ADVISOR VIEW ════ -->
+<div class="view active" id="view-advisor" style="padding:32px;height:100vh;display:none;flex-direction:column;">
+  <div style="margin-bottom:20px;">
+    <h1 class="page-title">Your Financial Advisor</h1>
+    <p class="page-sub">Ask anything about your money. I know your numbers.</p>
+  </div>
+
+  <div class="chat-layout" style="flex:1;">
+    <div class="chat-main">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg ai">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-bubble">
+            Hi Callie — I'm your personal financial advisor. I have access to your expenses, income, balance sheet, and Bitcoin position.<br><br>
+            You're currently <strong id="intro-pct">—</strong> of the way to your <strong>$2M goal</strong>, with a true monthly burn of around <strong>$925 USD + ₱19,000 pesos</strong>.<br><br>
+            What would you like to dig into today?
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chat-input" placeholder="Ask about your spending, income, goal progress, or anything financial…" onkeydown="handleKey(event)"></textarea>
+        <button class="btn-send" id="send-btn" onclick="sendMessage()">→</button>
+      </div>
+    </div>
+
+    <div class="chat-sidebar">
+      <div class="chat-context-card">
+        <h4>Live context</h4>
+        <div class="ctx-row"><span>Net worth</span><span id="ctx-nw">—</span></div>
+        <div class="ctx-row"><span>BTC holdings</span><span id="ctx-btc">—</span></div>
+        <div class="ctx-row"><span>Goal progress</span><span id="ctx-pct">—</span></div>
+        <div class="ctx-row"><span>This month exp.</span><span id="ctx-exp">—</span></div>
+        <div class="ctx-row"><span>This month inc.</span><span id="ctx-inc">—</span></div>
+      </div>
+
+      <div class="chat-context-card">
+        <h4>Ask me about…</h4>
+        <button class="prompt-chip" onclick="fillPrompt('Am I on track this month with spending?')">Am I on track this month?</button>
+        <button class="prompt-chip" onclick="fillPrompt('How far am I from my $2M Bitcoin and real estate goal?')">Goal progress update</button>
+        <button class="prompt-chip" onclick="fillPrompt('What are my biggest expense categories this year?')">Top expense categories</button>
+        <button class="prompt-chip" onclick="fillPrompt('Compare my income vs expenses for each month this year')">Income vs expenses</button>
+        <button class="prompt-chip" onclick="fillPrompt('What should I be watching out for financially right now?')">What to watch out for</button>
+        <button class="prompt-chip" onclick="fillPrompt('How is HorseClass performing and what does the debt look like?')">HorseClass check-in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DASHBOARD VIEW ════ -->
+<div class="view" id="view-dashboard">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-sub" id="dash-date">Loading…</p>
+
+  <div class="metric-grid" id="dash-metrics">
+    <div class="metric gold">
+      <div class="metric-label">Net worth</div>
+      <div class="metric-val gold" id="d-networth">—</div>
+      <div class="metric-sub">personal + CRK equity</div>
+    </div>
+    <div class="metric teal">
+      <div class="metric-label">Goal progress</div>
+      <div class="metric-val" id="d-goal-pct">—</div>
+      <div class="metric-sub">toward $2M BTC + RE</div>
+    </div>
+    <div class="metric green">
+      <div class="metric-label">This month income</div>
+      <div class="metric-val green" id="d-income">—</div>
+      <div class="metric-sub" id="d-income-sub">all sources</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">This month expenses</div>
+      <div class="metric-val" id="d-expense">—</div>
+      <div class="metric-sub" id="d-expense-sub">USD + pesos</div>
+    </div>
+  </div>
+
+  <!-- BTC Goal bar -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Bitcoin + Real Estate → $2M goal</div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+      <span>Current: <span style="color:var(--gold2);font-family:'JetBrains Mono',monospace;" id="goal-current">—</span></span>
+      <span><span style="color:var(--text3);" id="goal-pct-label">—</span> · Gap: <span style="font-family:'JetBrains Mono',monospace;" id="goal-gap">—</span></span>
+    </div>
+    <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-bar" style="width:0%"></div></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;" id="goal-5pct">At goal: $100,000/yr passive income · $8,333/mo</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="chart-card">
+      <h3>Income vs Expenses</h3>
+      <div class="chart-wrap"><canvas id="chart-inc-exp"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Expense breakdown</h3>
+      <div class="chart-wrap"><canvas id="chart-exp-cat"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ EXPENSES VIEW ════ -->
+<div class="view" id="view-expenses">
+  <h1 class="page-title">Expenses</h1>
+  <p class="page-sub">Daily spending log</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('exp','log')">Log expense</button>
+    <button class="tab-btn" onclick="switchTab('exp','history')">History</button>
+  </div>
+
+  <div class="tab-panel active" id="exp-log">
+    <div class="card">
+      <div class="cur-toggle">
+        <button class="cur-btn active" id="ebtn-usd" onclick="setExpCur('USD')">$ USD</button>
+        <button class="cur-btn" id="ebtn-mxn" onclick="setExpCur('MXN')">₱ Pesos</button>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="ef-date"></div>
+        <div class="field"><label>Amount</label>
+          <div class="sym-wrap"><span class="sym" id="e-sym">$</span><input type="number" id="ef-amount" placeholder="0.00" step="0.01" min="0"></div>
+        </div>
+        <div class="field"><label>Category</label><select id="ef-cat"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="field full"><label>Notes (optional)</label><input type="text" id="ef-note" placeholder="e.g. vet visit, Chedraui groceries, moto gas…"></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addExpense()">Add expense</button>
+    </div>
+    <div class="entry-list" id="exp-recent"></div>
+  </div>
+
+  <div class="tab-panel" id="exp-history">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <select id="exp-filter-month" onchange="renderExpHistory()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;color:var(--text);font-size:13px;outline:none;"></select>
+      <select id="exp-filter-cur" onchange="renderExpHistory()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;color:var(--text);font-size:13px;outline:none;">
+        <option value="all">All currencies</option>
+        <option value="USD">USD</option>
+        <option value="MXN">Pesos</option>
+      </select>
+      <select id="exp-filter-cat" onchange="renderExpHistory()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;color:var(--text);font-size:13px;outline:none;"><option value="all">All categories</option></select>
+    </div>
+    <div class="entry-list" id="exp-history-list"></div>
+  </div>
+</div>
+
+<!-- ════ INCOME VIEW ════ -->
+<div class="view" id="view-income">
+  <h1 class="page-title">Income</h1>
+  <p class="page-sub">All income sources</p>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('inc','log')">Log income</button>
+    <button class="tab-btn" onclick="switchTab('inc','history')">History</button>
+  </div>
+  <div class="tab-panel active" id="inc-log">
+    <div class="card">
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="if-date"></div>
+        <div class="field"><label>Amount (USD)</label>
+          <div class="sym-wrap"><span class="sym">$</span><input type="number" id="if-amount" placeholder="0.00" step="0.01" min="0"></div>
+        </div>
+        <div class="field"><label>Source</label>
+          <select id="if-source">
+            <option>Jellyfish</option>
+            <option>HorseClass — Owner Distribution</option>
+            <option>HorseClass — Instructor Pay</option>
+            <option>CRK Properties</option>
+            <option>CC Rewards</option>
+            <option>YouTube</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field full"><label>Notes (optional)</label><input type="text" id="if-note" placeholder="e.g. Feb distribution, rental income…"></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addIncome()">Add income</button>
+    </div>
+    <div class="entry-list" id="inc-recent"></div>
+  </div>
+  <div class="tab-panel" id="inc-history">
+    <select id="inc-filter-month" onchange="renderIncHistory()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:16px;"></select>
+    <div class="entry-list" id="inc-history-list"></div>
+  </div>
+</div>
+
+<!-- ════ BALANCE SHEET VIEW ════ -->
+<div class="view" id="view-balance">
+  <h1 class="page-title">Balance Sheet</h1>
+  <p class="page-sub">Quarterly snapshot — log once every 3 months</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('bal','log')">New snapshot</button>
+    <button class="tab-btn" onclick="switchTab('bal','history')">History</button>
+  </div>
+
+  <div class="tab-panel active" id="bal-log">
+    <div class="card">
+      <div class="card-title">Personal assets</div>
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="bf-date"></div>
+        <div class="field"><label>Quarter</label>
+          <select id="bf-quarter"><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Checking / Cash ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-cash" placeholder="0"></div></div>
+        <div class="field"><label>Roth IRA ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-roth" placeholder="0"></div></div>
+        <div class="field"><label>Crypto / BTC ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-crypto" placeholder="0"></div></div>
+        <div class="field"><label>Life Insurance ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-life" placeholder="0"></div></div>
+      </div>
+      <div class="card-title" style="margin-top:16px;">CRK Properties — value &amp; mortgage</div>
+      <div class="form-row">
+        <div class="field"><label>Hill Rd value ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-hill" placeholder="250000"></div></div>
+        <div class="field"><label>Hill Rd mortgage ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-hill-loan" placeholder="93000"></div></div>
+        <div class="field"><label>Compass Rd value ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-compass" placeholder="400000"></div></div>
+        <div class="field"><label>Compass Rd mortgage ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-compass-loan" placeholder="0"></div></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Florida value ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-florida" placeholder="115000"></div></div>
+        <div class="field"><label>Florida mortgage ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-florida-loan" placeholder="0"></div></div>
+        <div class="field"><label>Mexico value ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-mexico" placeholder="180000"></div></div>
+        <div class="field"><label>Mexico mortgage ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-mexico-loan" placeholder="0"></div></div>
+      </div>
+      <div class="card-title" style="margin-top:16px;">HorseClass liabilities</div>
+      <div class="form-row">
+        <div class="field"><label>LOC balance ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-loc" placeholder="0"></div></div>
+        <div class="field"><label>CC balance ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-hccc" placeholder="0"></div></div>
+        <div class="field"><label>Other loans ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-loans" placeholder="0"></div></div>
+        <div class="field"><label>HC checking ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="bf-hccheck" placeholder="0"></div></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addSnapshot()">Save snapshot</button>
+    </div>
+  </div>
+  <div class="tab-panel" id="bal-history">
+    <div class="chart-card">
+      <h3>Net worth over time</h3>
+      <div class="chart-wrap"><canvas id="chart-nw"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <table class="data-table" id="bal-table">
+        <thead><tr><th>Period</th><th>Personal</th><th>CRK Equity</th><th>HC Net</th><th>Total</th></tr></thead>
+        <tbody id="bal-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════ BITCOIN VIEW ════ -->
+<div class="view" id="view-bitcoin">
+  <h1 class="page-title">Bitcoin Goal</h1>
+  <p class="page-sub">Tracking progress toward $2M in BTC + Real Estate</p>
+
+  <div class="metric-grid">
+    <div class="metric gold">
+      <div class="metric-label">BTC Holdings (USD)</div>
+      <div class="metric-val gold" id="btc-val">—</div>
+      <div class="metric-sub" id="btc-sub">update in settings</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Real estate equity</div>
+      <div class="metric-val" id="re-val">—</div>
+      <div class="metric-sub">from latest snapshot</div>
+    </div>
+    <div class="metric teal">
+      <div class="metric-label">Combined</div>
+      <div class="metric-val" id="combined-val">—</div>
+      <div class="metric-sub" id="combined-pct">of $2M goal</div>
+    </div>
+    <div class="metric green">
+      <div class="metric-label">5% income at goal</div>
+      <div class="metric-val green">$8,333</div>
+      <div class="metric-sub">per month passive</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Goal progress</div>
+    <div class="goal-bar-wrap" style="height:12px;"><div class="goal-bar-fill" id="btc-bar" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:8px;">
+      <span>$0</span><span>$500K</span><span>$1M</span><span>$1.5M</span><span>$2M ✦</span>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Projection scenarios</h3>
+    <div class="chart-wrap" style="height:280px;"><canvas id="chart-projection"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title">Update BTC position</div>
+    <div class="form-row">
+      <div class="field"><label>BTC amount held</label><input type="number" id="btc-amount" placeholder="0.00000" step="0.00001"></div>
+      <div class="field"><label>Current BTC price ($)</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="btc-price" placeholder="85000"></div></div>
+      <div class="field"><label>Calculated value</label><div class="sym-wrap"><span class="sym">$</span><input type="number" id="btc-calc" readonly style="opacity:0.6;"></div></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveBTC()">Update BTC position</button>
+  </div>
+</div>
+
+<!-- ════ SETTINGS VIEW ════ -->
+<div class="view" id="view-settings">
+  <h1 class="page-title">Settings</h1>
+  <p class="page-sub">Connect your data sources</p>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Google Sheets connection</div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Apps Script URL</label>
+      <input type="text" id="s-sheets-url" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <button class="btn btn-primary" onclick="saveSheetURL()">Save & test connection</button>
+    <span id="sheets-test-result" style="margin-left:12px;font-size:12px;color:var(--text3);"></span>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">Claude AI (for advisor chat)</div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>Anthropic API Key</label>
+      <input type="password" id="s-api-key" placeholder="sk-ant-…">
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">Get your key at console.anthropic.com — stored locally in your browser only, never sent anywhere except Anthropic's API.</p>
+    <button class="btn btn-primary" onclick="saveAPIKey()">Save API key</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Data management</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="exportCSV()">↓ Export all data (CSV)</button>
+      <button class="btn btn-ghost" onclick="syncAllToSheets()">↑ Push all data to Sheets</button>
+      <button class="btn btn-ghost" onclick="loadFromSheets()">↓ Pull fresh from Sheets</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG & STATE
+// ══════════════════════════════════════════════
+let SCRIPT_URL = localStorage.getItem('ck_script_url') || '';
+let API_KEY    = localStorage.getItem('ck_api_key') || '';
+
+let expenses  = JSON.parse(localStorage.getItem('ck_expenses')  || '[]');
+let income    = JSON.parse(localStorage.getItem('ck_income')    || '[]');
+let snapshots = JSON.parse(localStorage.getItem('ck_snapshots') || '[]');
+let btcPos    = JSON.parse(localStorage.getItem('ck_btc')       || '{"amount":0,"price":85000,"value":56000}');
+
+const EXP_CATS = ['Home Expenses','Agua','Food','Fuel','Clothing','Entertainment','Health Insurance','Dining Out','Misc','Subscriptions','Phone','Travel','Books & Edu','Taxes','Motorcycle','CC Fees','Personal','Gifts','Internet','Dogs','Charity','Dany','ATM / BBVA','Horses','Gallinas','House Build'];
+const MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let expCurrency = 'USD';
+let incExpChart, expCatChart, nwChart, projChart;
+
+// ══════════════════════════════════════════════
+// SAVE & SYNC
+// ══════════════════════════════════════════════
+function saveAll() {
+  localStorage.setItem('ck_expenses',  JSON.stringify(expenses));
+  localStorage.setItem('ck_income',    JSON.stringify(income));
+  localStorage.setItem('ck_snapshots', JSON.stringify(snapshots));
+  localStorage.setItem('ck_btc',       JSON.stringify(btcPos));
+}
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot' + (state ? ' ' + state : '');
+  lbl.textContent = msg;
+}
+
+async function sheetsPost(payload) {
+  if (!SCRIPT_URL) return;
+  try {
+    setSyncStatus('', 'syncing…');
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const j = await res.json();
+    setSyncStatus(j.status === 'ok' ? 'ok' : 'err', j.status === 'ok' ? 'synced' : 'error');
+    setTimeout(() => setSyncStatus('', 'connected'), 3000);
+  } catch(e) { setSyncStatus('err', 'offline'); }
+}
+
+async function loadFromSheets() {
+  if (!SCRIPT_URL) return;
+  try {
+    setSyncStatus('', 'loading…');
+    const res = await fetch(SCRIPT_URL + '?type=all');
+    const j = await res.json();
+    if (j.status === 'ok') {
+      if (j.expenses)  expenses  = j.expenses;
+      if (j.income)    income    = j.income;
+      if (j.snapshots) snapshots = j.snapshots;
+      if (j.btc)       btcPos    = j.btc;
+      saveAll();
+      setSyncStatus('ok', 'connected');
+      refreshAll();
+      showToast('Loaded from Sheets ✓');
+    }
+  } catch(e) { setSyncStatus('err', 'offline — local data'); }
+}
+
+async function syncAllToSheets() {
+  if (!SCRIPT_URL) { showToast('No Sheets URL — check Settings'); return; }
+  try {
+    setSyncStatus('', 'syncing…');
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'sync_all', expenses, income })
+    });
+    const j = await res.json();
+    if (j.status === 'ok') {
+      setSyncStatus('ok', 'connected');
+      showToast('Pushed ' + (j.synced || expenses.length + income.length) + ' entries to Sheets ✓');
+    } else {
+      showToast('Error: ' + (j.message || 'unknown'));
+    }
+  } catch(e) {
+    showToast('Could not reach Sheets — check URL');
+    setSyncStatus('err', 'offline');
+  }
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+function init() {
+  document.getElementById('ef-date').value = today();
+  document.getElementById('if-date').value = today();
+  document.getElementById('bf-date').value = today();
+  document.getElementById('s-sheets-url').value = SCRIPT_URL;
+  document.getElementById('s-api-key').value    = API_KEY;
+
+  if (SCRIPT_URL) {
+    document.getElementById('config-banner').classList.remove('show');
+    setSyncStatus('ok', 'connected');
+  }
+
+  populateExpCats();
+  populateMonthFilters();
+  seedExpenses();
+  seedIncome();
+  refreshAll();
+  updateAdvisorContext();
+}
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function populateExpCats() {
+  const sel = document.getElementById('ef-cat');
+  sel.innerHTML = EXP_CATS.map(c => `<option>${c}</option>`).join('');
+  const fSel = document.getElementById('exp-filter-cat');
+  fSel.innerHTML = '<option value="all">All categories</option>' + EXP_CATS.map(c=>`<option>${c}</option>`).join('');
+}
+
+function populateMonthFilters() {
+  const months = getMonths();
+  const cur = new Date().toISOString().slice(0,7);
+  const all = months.includes(cur) ? months : [cur, ...months];
+  const opts = all.map(m => { const [y,mo] = m.split('-'); return `<option value="${m}">${MONTHS[+mo-1]} ${y}</option>`; }).join('');
+  ['exp-filter-month','inc-filter-month'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = opts;
+  });
+}
+
+function getMonths() {
+  const all = [...expenses, ...income].map(e => e.date.slice(0,7));
+  return [...new Set(all)].sort().reverse();
+}
+
+// ══════════════════════════════════════════════
+// EXPENSES
+// ══════════════════════════════════════════════
+function setExpCur(c) {
+  expCurrency = c;
+  document.getElementById('ebtn-usd').classList.toggle('active', c==='USD');
+  document.getElementById('ebtn-mxn').classList.toggle('active', c==='MXN');
+  document.getElementById('e-sym').textContent = c==='USD' ? '$' : '₱';
+}
+
+function addExpense() {
+  const date   = document.getElementById('ef-date').value;
+  const amount = parseFloat(document.getElementById('ef-amount').value);
+  const cat    = document.getElementById('ef-cat').value;
+  const note   = document.getElementById('ef-note').value.trim();
+  if (!date || !amount || amount <= 0) { showToast('Fill in date and amount'); return; }
+  const entry = { id: Date.now(), date, amount, currency: expCurrency, cat, note, type: 'expense' };
+  expenses.push(entry);
+  saveAll();
+  sheetsPost({ action: 'add', sheet: 'expenses', entry });
+  document.getElementById('ef-amount').value = '';
+  document.getElementById('ef-note').value = '';
+  document.getElementById('ef-date').value = today();
+  renderExpRecent();
+  updateAdvisorContext();
+  showToast('Expense added ✓');
+}
+
+function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  saveAll();
+  sheetsPost({ action: 'delete', sheet: 'expenses', id });
+  renderExpRecent();
+  renderExpHistory();
+  updateAdvisorContext();
+}
+
+function renderExpRecent() {
+  const list = document.getElementById('exp-recent');
+  const recent = [...expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
+  list.innerHTML = recent.length ? recent.map(e=>expRow(e,'deleteExpense')).join('') : '<div style="color:var(--text3);padding:24px;text-align:center;font-style:italic;">No entries yet</div>';
+}
+
+function renderExpHistory() {
+  const month = document.getElementById('exp-filter-month').value;
+  const cur   = document.getElementById('exp-filter-cur').value;
+  const cat   = document.getElementById('exp-filter-cat').value;
+  let data = expenses.filter(e => e.date.startsWith(month));
+  if (cur !== 'all') data = data.filter(e => e.currency === cur);
+  if (cat !== 'all') data = data.filter(e => e.cat === cat);
+  data.sort((a,b) => b.date.localeCompare(a.date));
+  const list = document.getElementById('exp-history-list');
+  list.innerHTML = data.length ? data.map(e=>expRow(e,'deleteExpense')).join('') : '<div style="color:var(--text3);padding:24px;text-align:center;font-style:italic;">No entries for this filter</div>';
+}
+
+function expRow(e, delFn) {
+  const sym = e.currency==='USD' ? '$' : '₱';
+  const amt = Math.round(e.amount).toLocaleString();
+  return `<div class="entry-row">
+    <span class="e-date">${e.date.slice(5)}</span>
+    <span class="pill ${e.currency.toLowerCase()}">${e.currency}</span>
+    <span class="e-cat">${e.cat}</span>
+    <span class="e-note">${e.note||''}</span>
+    <span class="e-amt ${e.currency.toLowerCase()}">${sym}${amt}</span>
+    <button class="btn-del" onclick="${delFn}(${e.id})">×</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// INCOME
+// ══════════════════════════════════════════════
+function addIncome() {
+  const date   = document.getElementById('if-date').value;
+  const amount = parseFloat(document.getElementById('if-amount').value);
+  const source = document.getElementById('if-source').value;
+  const note   = document.getElementById('if-note').value.trim();
+  if (!date || !amount || amount <= 0) { showToast('Fill in date and amount'); return; }
+  const entry = { id: Date.now(), date, amount, source, note, type: 'income' };
+  income.push(entry);
+  saveAll();
+  sheetsPost({ action: 'add', sheet: 'income', entry });
+  document.getElementById('if-amount').value = '';
+  document.getElementById('if-note').value = '';
+  document.getElementById('if-date').value = today();
+  renderIncRecent();
+  updateAdvisorContext();
+  showToast('Income logged ✓');
+}
+
+function deleteIncome(id) {
+  income = income.filter(e => e.id !== id);
+  saveAll();
+  sheetsPost({ action: 'delete', sheet: 'income', id });
+  renderIncRecent();
+  renderIncHistory();
+  updateAdvisorContext();
+}
+
+function renderIncRecent() {
+  const list = document.getElementById('inc-recent');
+  const recent = [...income].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  list.innerHTML = recent.length ? recent.map(e=>incRow(e)).join('') : '<div style="color:var(--text3);padding:24px;text-align:center;font-style:italic;">No income logged yet</div>';
+}
+
+function renderIncHistory() {
+  const month = document.getElementById('inc-filter-month').value;
+  const data = income.filter(e => e.date.startsWith(month)).sort((a,b)=>b.date.localeCompare(a.date));
+  const list = document.getElementById('inc-history-list');
+  list.innerHTML = data.length ? data.map(e=>incRow(e)).join('') : '<div style="color:var(--text3);padding:24px;text-align:center;font-style:italic;">No entries for this month</div>';
+}
+
+function incRow(e) {
+  return `<div class="entry-row">
+    <span class="e-date">${e.date.slice(5)}</span>
+    <span class="pill income">income</span>
+    <span class="e-cat">${e.source}</span>
+    <span class="e-note">${e.note||''}</span>
+    <span class="e-amt income">$${Math.round(e.amount).toLocaleString()}</span>
+    <button class="btn-del" onclick="deleteIncome(${e.id})">×</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// BALANCE SHEET
+// ══════════════════════════════════════════════
+function addSnapshot() {
+  const date    = document.getElementById('bf-date').value;
+  const quarter = document.getElementById('bf-quarter').value;
+  const g = id => parseFloat(document.getElementById(id).value) || 0;
+  const snap = {
+    id: Date.now(), date, quarter,
+    cash: g('bf-cash'), roth: g('bf-roth'), crypto: g('bf-crypto'), life: g('bf-life'),
+    // property values
+    hillVal: g('bf-hill'), hillLoan: g('bf-hill-loan'),
+    compassVal: g('bf-compass'), compassLoan: g('bf-compass-loan'),
+    floridaVal: g('bf-florida'), floridaLoan: g('bf-florida-loan'),
+    mexicoVal: g('bf-mexico'), mexicoLoan: g('bf-mexico-loan'),
+    loc: g('bf-loc'), hccc: g('bf-hccc'), loans: g('bf-loans'), hccheck: g('bf-hccheck')
+  };
+  // True equity = value minus mortgage on each property
+  snap.hillEquity    = snap.hillVal    - snap.hillLoan;
+  snap.compassEquity = snap.compassVal - snap.compassLoan;
+  snap.floridaEquity = snap.floridaVal - snap.floridaLoan;
+  snap.mexicoEquity  = snap.mexicoVal  - snap.mexicoLoan;
+  snap.personalAssets = snap.cash + snap.roth + snap.crypto + snap.life;
+  snap.reEquity = snap.hillEquity + snap.compassEquity + snap.floridaEquity + snap.mexicoEquity;
+  snap.hcNet = snap.hccheck - snap.loc - snap.hccc - snap.loans;
+  snap.totalNW = snap.personalAssets + snap.reEquity + snap.hcNet;
+  snapshots.push(snap);
+  saveAll();
+  sheetsPost({ action: 'add', sheet: 'snapshots', entry: snap });
+  renderBalHistory();
+  updateAdvisorContext();
+  showToast('Snapshot saved ✓');
+}
+
+function renderBalHistory() {
+  const tbody = document.getElementById('bal-tbody');
+  const sorted = [...snapshots].sort((a,b) => a.date.localeCompare(b.date));
+  tbody.innerHTML = sorted.map(s => {
+    // Support both old snapshots (hill/compass/florida/mexico as gross values) and new ones with equity fields
+    const hillEq    = s.hillEquity    ?? s.hill    ?? 0;
+    const compassEq = s.compassEquity ?? s.compass ?? 0;
+    const floridaEq = s.floridaEquity ?? s.florida ?? 0;
+    const mexicoEq  = s.mexicoEquity  ?? s.mexico  ?? 0;
+    const reEq = s.reEquity ?? (hillEq + compassEq + floridaEq + mexicoEq);
+    return `<tr>
+    <td>${s.quarter} ${s.date.slice(0,4)}</td>
+    <td>$${Math.round(s.personalAssets||0).toLocaleString()}</td>
+    <td title="Hill $${Math.round(hillEq).toLocaleString()} · Compass $${Math.round(compassEq).toLocaleString()} · FL $${Math.round(floridaEq).toLocaleString()} · MX $${Math.round(mexicoEq).toLocaleString()}">$${Math.round(reEq).toLocaleString()}</td>
+    <td style="color:${(s.hcNet||0)<0?'var(--red)':'var(--green)'}">$${Math.round(s.hcNet||0).toLocaleString()}</td>
+    <td style="color:var(--gold2)">$${Math.round(s.totalNW||0).toLocaleString()}</td>
+  </tr>`;
+  }).join('');
+  buildNWChart(sorted);
+}
+
+function buildNWChart(data) {
+  if (nwChart) nwChart.destroy();
+  if (!data.length) return;
+  nwChart = new Chart(document.getElementById('chart-nw'), {
+    type: 'line',
+    data: {
+      labels: data.map(s => `${s.quarter} ${s.date.slice(0,4)}`),
+      datasets: [
+        { label: 'Total NW', data: data.map(s=>s.totalNW), borderColor: '#C8922A', backgroundColor: 'rgba(200,146,42,0.08)', fill: true, tension: 0.3, pointRadius: 5 },
+        { label: 'RE Equity', data: data.map(s=>s.reEquity), borderColor: '#2A9D8F', tension: 0.3, pointRadius: 4, borderDash: [4,3] },
+        { label: 'Personal', data: data.map(s=>s.personalAssets), borderColor: '#57CC99', tension: 0.3, pointRadius: 4, borderDash: [4,3] },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9A9490', font:{size:11} } } }, scales: { x: { ticks:{color:'#5A5652',font:{size:10}} }, y: { ticks:{color:'#5A5652',font:{size:10}, callback: v=>'$'+(v/1000).toFixed(0)+'K'} } } }
+  });
+}
+
+// ══════════════════════════════════════════════
+// BITCOIN
+// ══════════════════════════════════════════════
+function saveBTC() {
+  const amt   = parseFloat(document.getElementById('btc-amount').value) || 0;
+  const price = parseFloat(document.getElementById('btc-price').value)  || 0;
+  btcPos = { amount: amt, price, value: Math.round(amt * price) };
+  saveAll();
+  sheetsPost({ action: 'updateBTC', btc: btcPos });
+  updateBTCView();
+  updateAdvisorContext();
+  showToast('BTC position updated ✓');
+}
+
+document.addEventListener('input', () => {
+  const a = parseFloat(document.getElementById('btc-amount')?.value)||0;
+  const p = parseFloat(document.getElementById('btc-price')?.value)||0;
+  const calc = document.getElementById('btc-calc');
+  if (calc) calc.value = Math.round(a*p).toLocaleString();
+});
+
+function updateBTCView() {
+  const latestSnap = snapshots.sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const reEquity = latestSnap ? latestSnap.reEquity : 858592;
+  const btcVal   = btcPos.value || 56000;
+  const combined = reEquity + btcVal;
+  const pct = Math.min((combined / 2000000) * 100, 100);
+  const gap = 2000000 - combined;
+
+  document.getElementById('btc-val').textContent     = '$' + btcVal.toLocaleString();
+  document.getElementById('btc-sub').textContent     = btcPos.amount ? `${btcPos.amount} BTC @ $${(btcPos.price||0).toLocaleString()}` : 'update below';
+  document.getElementById('re-val').textContent      = '$' + Math.round(reEquity).toLocaleString();
+  document.getElementById('combined-val').textContent= '$' + Math.round(combined).toLocaleString();
+  document.getElementById('combined-pct').textContent= pct.toFixed(1) + '% of $2M goal';
+  document.getElementById('btc-bar').style.width     = pct + '%';
+
+  buildProjectionChart(combined);
+}
+
+function buildProjectionChart(current) {
+  if (projChart) projChart.destroy();
+  const yrs = Array.from({length:20},(_,i)=>i+1);
+  const re0 = current * 0.94; // rough split
+  const btc0 = current * 0.06;
+
+  function proj(btcRate) {
+    let re = re0, btc = btc0;
+    return yrs.map(() => { re*=1.04; btc*=(1+btcRate); return Math.round(re+btc); });
+  }
+
+  projChart = new Chart(document.getElementById('chart-projection'), {
+    type: 'line',
+    data: {
+      labels: yrs.map(y => 'Yr '+y),
+      datasets: [
+        { label: 'BTC 40%/yr', data: proj(0.4), borderColor: '#C8922A', tension: 0.3, pointRadius: 2 },
+        { label: 'BTC 20%/yr', data: proj(0.2), borderColor: '#2A9D8F', tension: 0.3, pointRadius: 2 },
+        { label: 'BTC 10%/yr', data: proj(0.1), borderColor: '#57CC99', tension: 0.3, pointRadius: 2 },
+        { label: '$2M target', data: Array(20).fill(2000000), borderColor: '#E76F51', borderDash: [5,4], pointRadius: 0, borderWidth: 1.5 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels:{color:'#9A9490',font:{size:11}} } }, scales: { x:{ticks:{color:'#5A5652',font:{size:10},maxTicksLimit:10}}, y:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'$'+(v/1000000).toFixed(1)+'M'}} } }
+  });
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function updateDashboard() {
+  const now   = new Date();
+  const curMonth = now.toISOString().slice(0,7);
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const nw   = latestSnap ? latestSnap.totalNW : 613939;
+  const reEq = latestSnap ? latestSnap.reEquity : 858592;
+  const btcV = btcPos.value || 56000;
+  const combined = reEq + btcV;
+  const pct  = Math.min((combined/2000000)*100,100);
+  const gap  = 2000000 - combined;
+
+  document.getElementById('d-networth').textContent = '$' + Math.round(nw).toLocaleString();
+  document.getElementById('d-goal-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('goal-current').textContent = '$' + Math.round(combined).toLocaleString();
+  document.getElementById('goal-pct-label').textContent = pct.toFixed(1) + '%';
+  document.getElementById('goal-gap').textContent = '$' + Math.round(gap).toLocaleString();
+  document.getElementById('goal-bar').style.width = pct + '%';
+
+  const monthInc = income.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
+  const monthUSD = expenses.filter(e=>e.date.startsWith(curMonth)&&e.currency==='USD').reduce((s,e)=>s+e.amount,0);
+  const monthMXN = expenses.filter(e=>e.date.startsWith(curMonth)&&e.currency==='MXN').reduce((s,e)=>s+e.amount,0);
+
+  document.getElementById('d-income').textContent = '$' + Math.round(monthInc).toLocaleString();
+  document.getElementById('d-income-sub').textContent = income.filter(e=>e.date.startsWith(curMonth)).length + ' transactions';
+  document.getElementById('d-expense').textContent = '$' + Math.round(monthUSD).toLocaleString();
+  document.getElementById('d-expense-sub').textContent = '+ ₱' + Math.round(monthMXN).toLocaleString() + ' pesos';
+
+  buildIncExpChart();
+  buildExpCatChart(curMonth);
+}
+
+function buildIncExpChart() {
+  if (incExpChart) incExpChart.destroy();
+  const months = getMonths().slice(0,6).reverse();
+  const incData = months.map(m => income.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0));
+  const expData = months.map(m => expenses.filter(e=>e.date.startsWith(m)&&e.currency==='USD').reduce((s,e)=>s+e.amount,0));
+  const labels  = months.map(m => { const [y,mo]=m.split('-'); return MONTHS[+mo-1].slice(0,3); });
+
+  incExpChart = new Chart(document.getElementById('chart-inc-exp'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'Income', data: incData, backgroundColor: 'rgba(87,204,153,0.7)', borderRadius: 4 },
+      { label: 'Expenses (USD)', data: expData, backgroundColor: 'rgba(231,111,81,0.5)', borderRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{labels:{color:'#9A9490',font:{size:11}}}}, scales:{x:{ticks:{color:'#5A5652',font:{size:11}}},y:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}} }
+  });
+}
+
+function buildExpCatChart(month) {
+  if (expCatChart) expCatChart.destroy();
+  const data = expenses.filter(e=>e.date.startsWith(month));
+  const cats = {};
+  data.forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.amount; });
+  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const colors = ['#C8922A','#2A9D8F','#E76F51','#57CC99','#E8B84B','#9A9490','#7F77DD','#D4537E'];
+
+  expCatChart = new Chart(document.getElementById('chart-exp-cat'), {
+    type: 'doughnut',
+    data: { labels: sorted.map(p=>p[0]), datasets: [{ data: sorted.map(p=>Math.round(p[1])), backgroundColor: colors, borderWidth: 1, borderColor: '#1E1E1E' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{position:'right',labels:{color:'#9A9490',font:{size:10},boxWidth:10,padding:8}} } }
+  });
+}
+
+// ══════════════════════════════════════════════
+// ADVISOR CONTEXT
+// ══════════════════════════════════════════════
+function updateAdvisorContext() {
+  const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const reEq   = latestSnap ? latestSnap.reEquity : 858592;
+  const nw     = latestSnap ? latestSnap.totalNW : 613939;
+  const btcV   = btcPos.value || 56000;
+  const combined = reEq + btcV;
+  const pct    = ((combined/2000000)*100).toFixed(1);
+  const curMonth = new Date().toISOString().slice(0,7);
+  const monthExp = expenses.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
+  const monthInc = income.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
+
+  document.getElementById('ctx-nw').textContent   = '$' + Math.round(nw).toLocaleString();
+  document.getElementById('ctx-btc').textContent  = '$' + (btcV).toLocaleString();
+  document.getElementById('ctx-pct').textContent  = pct + '%';
+  document.getElementById('ctx-exp').textContent  = '$' + Math.round(monthExp).toLocaleString();
+  document.getElementById('ctx-inc').textContent  = monthInc ? '$' + Math.round(monthInc).toLocaleString() : '—';
+  document.getElementById('intro-pct').textContent = pct + '%';
+}
+
+function buildFinancialContext() {
+  const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const curMonth   = new Date().toISOString().slice(0,7);
+  const prevMonth  = new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,7);
+
+  const monthExp   = expenses.filter(e=>e.date.startsWith(curMonth));
+  const prevExp    = expenses.filter(e=>e.date.startsWith(prevMonth));
+  const monthInc   = income.filter(e=>e.date.startsWith(curMonth));
+
+  const expBycat = {};
+  monthExp.forEach(e => { expBycat[e.cat] = (expBycat[e.cat]||0) + e.amount; });
+
+  const ytdInc = income.filter(e=>e.date.startsWith(new Date().getFullYear().toString())).reduce((s,e)=>s+e.amount,0);
+  const ytdExp = expenses.filter(e=>e.date.startsWith(new Date().getFullYear().toString())).reduce((s,e)=>s+e.amount,0);
+
+  return `You are Callie King's personal financial advisor. You have real-time access to her complete financial data. Be direct, insightful, and specific — use actual numbers in every response. Callie lives in Mexico, earns primarily through HorseClass (online horse training business) and Jellyfish, and is working toward a $2 million net worth in Bitcoin + real estate to generate $100K/year passive income at 5%.
+
+CURRENT FINANCIAL SNAPSHOT:
+- Net worth: $${latestSnap ? Math.round(latestSnap.totalNW).toLocaleString() : '613,939'} (latest quarterly snapshot)
+- Real estate equity (after mortgages): $${latestSnap ? Math.round(latestSnap.reEquity).toLocaleString() : '858,592'} — Hill Rd $${latestSnap ? Math.round(latestSnap.hillEquity??157000).toLocaleString() : '157,000'} (value $${latestSnap ? Math.round(latestSnap.hillVal??250000).toLocaleString() : '250,000'} - mortgage $${latestSnap ? Math.round(latestSnap.hillLoan??93000).toLocaleString() : '93,000'}), Compass Rd $${latestSnap ? Math.round(latestSnap.compassEquity??400000).toLocaleString() : '400,000'} (unencumbered), Florida $${latestSnap ? Math.round(latestSnap.floridaEquity??115000).toLocaleString() : '115,000'} (unencumbered), Mexico $${latestSnap ? Math.round(latestSnap.mexicoEquity??180000).toLocaleString() : '180,000'} (unencumbered)
+- Bitcoin/crypto: $${(btcPos.value||56000).toLocaleString()}
+- Goal progress: ${(((latestSnap?.reEquity||858592) + (btcPos.value||56000)) / 2000000 * 100).toFixed(1)}% toward $2M
+- HorseClass liabilities: LOC ${latestSnap ? '$'+Math.round(latestSnap.loc).toLocaleString() : '~$79K'}, CC ${latestSnap ? '$'+Math.round(latestSnap.hccc).toLocaleString() : '~$10K'}
+
+THIS MONTH (${curMonth}):
+- Expenses logged: $${Math.round(monthExp.reduce((s,e)=>s+e.amount,0)).toLocaleString()} across ${monthExp.length} transactions
+- Top categories: ${Object.entries(expBycat).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${k} $${Math.round(v)}`).join(', ') || 'none yet'}
+- Income logged: $${Math.round(monthInc.reduce((s,e)=>s+e.amount,0)).toLocaleString()} from ${[...new Set(monthInc.map(e=>e.source))].join(', ') || 'none yet'}
+
+YEAR TO DATE:
+- Total income: $${Math.round(ytdInc).toLocaleString()}
+- Total expenses: $${Math.round(ytdExp).toLocaleString()}
+- Net: $${Math.round(ytdInc - ytdExp).toLocaleString()}
+
+MONTHLY BASELINES (from analysis):
+- Personal burn rate: ~$925 USD + ₱19,000 pesos/month (excl. construction, land, ATM transfers)
+- Fixed USD costs: ~$455/mo (health insurance + phone)
+- Pesos funded via ATM withdrawals — all peso spending flows through USD
+
+BUSINESS CONTEXT:
+- HorseClass: online horse training, events-based revenue, currently running LOC liability that needs watching
+- Jellyfish: consistent monthly income source
+- CRK Properties: 3 US rentals with low cap rates (appreciation play), Mexico property actively being built
+- Bitcoin: primary growth vehicle toward $2M goal, historically 20-40%/yr
+
+Give concise, data-driven advice. Reference specific numbers. Flag concerns directly. Celebrate wins. Always tie back to the $2M goal when relevant.`;
+}
+
+// ══════════════════════════════════════════════
+// AI CHAT
+// ══════════════════════════════════════════════
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  if (!API_KEY) {
+    addMsg('ai', "To chat with your financial advisor, add your Claude API key in **Settings** — it takes 30 seconds and stays in your browser.");
+    return;
+  }
+
+  input.value = '';
+  addMsg('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  const typingId = addTyping();
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildFinancialContext(),
+        messages: chatHistory
+      })
+    });
+
+    removeTyping(typingId);
+    const data = await res.json();
+
+    if (data.error) {
+      addMsg('ai', `API error: ${data.error.message}. Check your API key in Settings.`);
+      chatHistory.pop();
+    } else {
+      const reply = data.content[0].text;
+      addMsg('ai', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+    }
+  } catch(e) {
+    removeTyping(typingId);
+    addMsg('ai', 'Connection error — check your internet and API key.');
+    chatHistory.pop();
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const initials = role === 'ai' ? '✦' : 'CK';
+  const formatted = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const el = document.createElement('div');
+  el.className = 'msg ' + role;
+  el.innerHTML = `<div class="msg-avatar">${initials}</div><div class="msg-bubble">${formatted}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const id = Date.now();
+  const el = document.createElement('div');
+  el.className = 'msg ai'; el.id = 'typing-'+id;
+  el.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-bubble"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById('typing-'+id);
+  if (el) el.remove();
+}
+
+function fillPrompt(text) {
+  document.getElementById('chat-input').value = text;
+  document.getElementById('chat-input').focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+async function saveSheetURL() {
+  SCRIPT_URL = document.getElementById('s-sheets-url').value.trim();
+  localStorage.setItem('ck_script_url', SCRIPT_URL);
+  document.getElementById('sheets-test-result').textContent = 'Testing…';
+  try {
+    const res = await fetch(SCRIPT_URL + '?type=all');
+    const j = await res.json();
+    if (j.status === 'ok') {
+      document.getElementById('sheets-test-result').textContent = '✓ Connected';
+      document.getElementById('config-banner').classList.remove('show');
+      setSyncStatus('ok', 'connected');
+      showToast('Connected to Google Sheets ✓');
+    } else { document.getElementById('sheets-test-result').textContent = '✗ Error'; }
+  } catch(e) { document.getElementById('sheets-test-result').textContent = '✗ Could not reach URL'; }
+}
+
+function saveAPIKey() {
+  API_KEY = document.getElementById('s-api-key').value.trim();
+  localStorage.setItem('ck_api_key', API_KEY);
+  showToast('API key saved ✓');
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); v.style.display=''; });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const v = document.getElementById('view-'+name);
+  if (name === 'advisor') { v.style.display='flex'; } else { v.classList.add('active'); }
+  document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.toLowerCase().includes(name.slice(0,4))) n.classList.add('active'); });
+
+  if (name === 'dashboard') updateDashboard();
+  if (name === 'balance')   renderBalHistory();
+  if (name === 'bitcoin')   updateBTCView();
+  if (name === 'expenses')  { renderExpRecent(); populateMonthFilters(); }
+  if (name === 'income')    { renderIncRecent(); populateMonthFilters(); }
+  if (name === 'advisor')   updateAdvisorContext();
+}
+
+function switchTab(group, tab) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => {
+    if (el.classList.contains('tab-panel')) el.classList.remove('active');
+  });
+  document.getElementById(`${group}-${tab}`).classList.add('active');
+  event.target.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (group==='exp' && tab==='history')  { populateMonthFilters(); renderExpHistory(); }
+  if (group==='inc' && tab==='history')  { populateMonthFilters(); renderIncHistory(); }
+  if (group==='bal' && tab==='history')  renderBalHistory();
+}
+
+// ══════════════════════════════════════════════
+// CSV EXPORT
+// ══════════════════════════════════════════════
+function exportCSV() {
+  const all = [
+    ['type','date','currency','amount','category_or_source','notes'],
+    ...expenses.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>['expense',e.date,e.currency,e.amount,e.cat,e.note||'']),
+    ...income.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>['income',e.date,'USD',e.amount,e.source,e.note||''])
+  ];
+  const csv = all.map(r=>r.map(v=>typeof v==='string'&&v.includes(',')?`"${v}"`:v).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `ck_finances_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSV exported ✓');
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════
+// REFRESH ALL
+// ══════════════════════════════════════════════
+function refreshAll() {
+  renderExpRecent();
+  renderIncRecent();
+  populateMonthFilters();
+  updateAdvisorContext();
+}
+
+// ══════════════════════════════════════════════
+// SEED 2026 EXPENSE DATA
+// ══════════════════════════════════════════════
+function seedExpenses() {
+  if (expenses.length > 0) return;
+  expenses = [{"id":2000,"date":"2026-01-01","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2001,"date":"2026-01-01","amount":160,"currency":"MXN","cat":"Dogs","note":""},{"id":2002,"date":"2026-01-01","amount":100,"currency":"MXN","cat":"Dani","note":""},{"id":2003,"date":"2026-01-03","amount":1000,"currency":"MXN","cat":"Food","note":""},{"id":2004,"date":"2026-01-03","amount":400,"currency":"MXN","cat":"Dani","note":""},{"id":2005,"date":"2026-01-04","amount":204,"currency":"MXN","cat":"Dining Out","note":""},{"id":2006,"date":"2026-01-04","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2007,"date":"2026-01-05","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2008,"date":"2026-01-05","amount":100,"currency":"MXN","cat":"Dogs","note":""},{"id":2009,"date":"2026-01-07","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2010,"date":"2026-01-08","amount":130,"currency":"MXN","cat":"Dining Out","note":""},{"id":2011,"date":"2026-01-08","amount":150,"currency":"MXN","cat":"Fuel","note":""},{"id":2012,"date":"2026-01-08","amount":100,"currency":"MXN","cat":"Dogs","note":""},{"id":2013,"date":"2026-01-08","amount":200,"currency":"MXN","cat":"Motorcycle","note":""},{"id":2014,"date":"2026-01-09","amount":220,"currency":"MXN","cat":"Fuel","note":""},{"id":2015,"date":"2026-01-10","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2016,"date":"2026-01-10","amount":46,"currency":"MXN","cat":"House Build","note":""},{"id":2017,"date":"2026-01-10","amount":200,"currency":"MXN","cat":"Personal","note":""},{"id":2018,"date":"2026-01-12","amount":865,"currency":"MXN","cat":"Food","note":""},{"id":2019,"date":"2026-01-12","amount":30,"currency":"MXN","cat":"Dogs","note":""},{"id":2020,"date":"2026-01-13","amount":155,"currency":"MXN","cat":"Food","note":""},{"id":2021,"date":"2026-01-13","amount":90,"currency":"MXN","cat":"Dogs","note":""},{"id":2022,"date":"2026-01-14","amount":379,"currency":"MXN","cat":"Food","note":""},{"id":2023,"date":"2026-01-14","amount":100,"currency":"MXN","cat":"Fuel","note":""},{"id":2024,"date":"2026-01-14","amount":200,"currency":"MXN","cat":"Gallinas","note":""},{"id":2025,"date":"2026-01-14","amount":100,"currency":"MXN","cat":"Dani","note":""},{"id":2026,"date":"2026-01-15","amount":900,"currency":"MXN","cat":"Food","note":""},{"id":2027,"date":"2026-01-15","amount":400,"currency":"MXN","cat":"Dogs","note":""},{"id":2055,"date":"2026-01-15","amount":110.18,"currency":"USD","cat":"Home Expenses","note":""},{"id":2056,"date":"2026-01-15","amount":44.9,"currency":"USD","cat":"Food","note":""},{"id":2057,"date":"2026-01-15","amount":133.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2058,"date":"2026-01-15","amount":42.24,"currency":"USD","cat":"Dining Out","note":""},{"id":2059,"date":"2026-01-15","amount":84.41,"currency":"USD","cat":"Misc","note":""},{"id":2060,"date":"2026-01-15","amount":32.74,"currency":"USD","cat":"Subscriptions","note":""},{"id":2061,"date":"2026-01-15","amount":120.0,"currency":"USD","cat":"Phone","note":""},{"id":2062,"date":"2026-01-15","amount":484.95,"currency":"USD","cat":"Travel","note":""},{"id":2063,"date":"2026-01-15","amount":7.94,"currency":"USD","cat":"Books & Edu","note":""},{"id":2064,"date":"2026-01-15","amount":232.0,"currency":"USD","cat":"Motorcycle","note":""},{"id":2065,"date":"2026-01-15","amount":150.0,"currency":"USD","cat":"CC Fees","note":""},{"id":2066,"date":"2026-01-15","amount":44.58,"currency":"USD","cat":"Personal","note":""},{"id":2067,"date":"2026-01-15","amount":70.19,"currency":"USD","cat":"Internet","note":""},{"id":2028,"date":"2026-01-16","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2029,"date":"2026-01-16","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2030,"date":"2026-01-16","amount":700,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2031,"date":"2026-01-16","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2032,"date":"2026-01-16","amount":50,"currency":"MXN","cat":"Charity","note":""},{"id":2033,"date":"2026-01-16","amount":450,"currency":"MXN","cat":"Horses","note":""},{"id":2034,"date":"2026-01-17","amount":600,"currency":"MXN","cat":"Food","note":""},{"id":2035,"date":"2026-01-19","amount":140,"currency":"MXN","cat":"Dining Out","note":""},{"id":2036,"date":"2026-01-19","amount":150,"currency":"MXN","cat":"Food","note":""},{"id":2037,"date":"2026-01-19","amount":40,"currency":"MXN","cat":"Dogs","note":""},{"id":2038,"date":"2026-01-20","amount":222,"currency":"MXN","cat":"Food","note":""},{"id":2039,"date":"2026-01-21","amount":505,"currency":"MXN","cat":"Dining Out","note":""},{"id":2040,"date":"2026-01-21","amount":370,"currency":"MXN","cat":"Fuel","note":""},{"id":2041,"date":"2026-01-21","amount":11500,"currency":"MXN","cat":"House Build","note":""},{"id":2042,"date":"2026-01-21","amount":2540,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2043,"date":"2026-01-21","amount":1120,"currency":"MXN","cat":"Personal","note":""},{"id":2044,"date":"2026-01-23","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2045,"date":"2026-01-23","amount":250,"currency":"MXN","cat":"Dogs","note":""},{"id":2046,"date":"2026-01-24","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2047,"date":"2026-01-24","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2048,"date":"2026-01-26","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2049,"date":"2026-01-26","amount":1700,"currency":"MXN","cat":"House Build","note":""},{"id":2050,"date":"2026-01-27","amount":180,"currency":"MXN","cat":"Fuel","note":""},{"id":2051,"date":"2026-01-27","amount":3250,"currency":"MXN","cat":"House Build","note":""},{"id":2052,"date":"2026-01-27","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2053,"date":"2026-01-28","amount":5000,"currency":"MXN","cat":"House Build","note":""},{"id":2054,"date":"2026-01-28","amount":230,"currency":"MXN","cat":"Personal","note":""},{"id":2068,"date":"2026-01-31","amount":2444.47,"currency":"USD","cat":"ATM / BBVA","note":"est. Jan ATM div17"},{"id":2069,"date":"2026-02-11","amount":6000,"currency":"MXN","cat":"Charity","note":""},{"id":2070,"date":"2026-02-13","amount":500,"currency":"MXN","cat":"House Build","note":""},{"id":2071,"date":"2026-02-14","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2072,"date":"2026-02-14","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2073,"date":"2026-02-14","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2074,"date":"2026-02-15","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2075,"date":"2026-02-15","amount":2370,"currency":"MXN","cat":"House Build","note":""},{"id":2076,"date":"2026-02-15","amount":1300,"currency":"MXN","cat":"Dogs","note":""},{"id":2096,"date":"2026-02-15","amount":1082.0,"currency":"USD","cat":"Home Expenses","note":""},{"id":2097,"date":"2026-02-15","amount":161.03,"currency":"USD","cat":"Food","note":""},{"id":2098,"date":"2026-02-15","amount":67.61,"currency":"USD","cat":"Fuel","note":""},{"id":2099,"date":"2026-02-15","amount":4.95,"currency":"USD","cat":"Entertainment","note":""},{"id":2100,"date":"2026-02-15","amount":178.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2101,"date":"2026-02-15","amount":74.3,"currency":"USD","cat":"Dining Out","note":""},{"id":2102,"date":"2026-02-15","amount":139.0,"currency":"USD","cat":"Misc","note":""},{"id":2103,"date":"2026-02-15","amount":39.63,"currency":"USD","cat":"Subscriptions","note":""},{"id":2104,"date":"2026-02-15","amount":108.32,"currency":"USD","cat":"Phone","note":""},{"id":2105,"date":"2026-02-15","amount":227.59,"currency":"USD","cat":"Travel","note":""},{"id":2106,"date":"2026-02-15","amount":22.0,"currency":"USD","cat":"Books & Edu","note":""},{"id":2107,"date":"2026-02-15","amount":73.01,"currency":"USD","cat":"Internet","note":""},{"id":2108,"date":"2026-02-15","amount":20.4,"currency":"USD","cat":"Charity","note":""},{"id":2109,"date":"2026-02-15","amount":4401.0,"currency":"USD","cat":"ATM / BBVA","note":""},{"id":2077,"date":"2026-02-16","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2078,"date":"2026-02-18","amount":2374,"currency":"MXN","cat":"House Build","note":""},{"id":2079,"date":"2026-02-20","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2080,"date":"2026-02-20","amount":1500,"currency":"MXN","cat":"Food","note":""},{"id":2081,"date":"2026-02-20","amount":9250,"currency":"MXN","cat":"House Build","note":""},{"id":2082,"date":"2026-02-22","amount":3000,"currency":"MXN","cat":"House Build","note":""},{"id":2083,"date":"2026-02-22","amount":80,"currency":"MXN","cat":"Charity","note":""},{"id":2084,"date":"2026-02-23","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2085,"date":"2026-02-24","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2086,"date":"2026-02-25","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2087,"date":"2026-02-25","amount":1000,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2088,"date":"2026-02-26","amount":1539,"currency":"MXN","cat":"Dining Out","note":""},{"id":2089,"date":"2026-02-26","amount":1539,"currency":"MXN","cat":"Food","note":""},{"id":2090,"date":"2026-02-28","amount":110,"currency":"MXN","cat":"Dining Out","note":""},{"id":2091,"date":"2026-02-28","amount":1775,"currency":"MXN","cat":"Food","note":""},{"id":2092,"date":"2026-02-28","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2093,"date":"2026-02-28","amount":440,"currency":"MXN","cat":"House Build","note":""},{"id":2094,"date":"2026-02-28","amount":110,"currency":"MXN","cat":"Personal","note":""},{"id":2095,"date":"2026-02-28","amount":35233,"currency":"MXN","cat":"House Build","note":"itemized build spend"},{"id":2110,"date":"2026-03-01","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2111,"date":"2026-03-01","amount":260,"currency":"MXN","cat":"Dogs","note":""},{"id":2112,"date":"2026-03-03","amount":400,"currency":"MXN","cat":"Dining Out","note":""},{"id":2113,"date":"2026-03-03","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2114,"date":"2026-03-04","amount":340,"currency":"MXN","cat":"Dining Out","note":""},{"id":2115,"date":"2026-03-05","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2116,"date":"2026-03-05","amount":100,"currency":"MXN","cat":"Personal","note":""},{"id":2117,"date":"2026-03-06","amount":320,"currency":"MXN","cat":"Dining Out","note":""},{"id":2118,"date":"2026-03-06","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2119,"date":"2026-03-07","amount":2180,"currency":"MXN","cat":"Food","note":""},{"id":2120,"date":"2026-03-07","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2121,"date":"2026-03-07","amount":480,"currency":"MXN","cat":"Dogs","note":""},{"id":2122,"date":"2026-03-08","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2123,"date":"2026-03-08","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2124,"date":"2026-03-09","amount":300,"currency":"MXN","cat":"Dining Out","note":""},{"id":2125,"date":"2026-03-09","amount":6000,"currency":"MXN","cat":"House Build","note":""},{"id":2126,"date":"2026-03-10","amount":315,"currency":"MXN","cat":"Food","note":""},{"id":2127,"date":"2026-03-10","amount":50,"currency":"MXN","cat":"Dogs","note":""},{"id":2128,"date":"2026-03-11","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2129,"date":"2026-03-11","amount":40,"currency":"MXN","cat":"Dogs","note":""},{"id":2130,"date":"2026-03-12","amount":1560,"currency":"MXN","cat":"Food","note":""},{"id":2131,"date":"2026-03-12","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2132,"date":"2026-03-13","amount":150,"currency":"MXN","cat":"Fuel","note":""},{"id":2133,"date":"2026-03-14","amount":970,"currency":"MXN","cat":"Food","note":""},{"id":2134,"date":"2026-03-15","amount":300,"currency":"MXN","cat":"Food","note":""},{"id":2178,"date":"2026-03-15","amount":120.85,"currency":"USD","cat":"Food","note":""},{"id":2179,"date":"2026-03-15","amount":178.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2180,"date":"2026-03-15","amount":15.0,"currency":"USD","cat":"Subscriptions","note":""},{"id":2181,"date":"2026-03-15","amount":108.32,"currency":"USD","cat":"Phone","note":""},{"id":2182,"date":"2026-03-15","amount":25.0,"currency":"USD","cat":"Books & Edu","note":""},{"id":2183,"date":"2026-03-15","amount":73.0,"currency":"USD","cat":"Internet","note":""},{"id":2135,"date":"2026-03-16","amount":730,"currency":"MXN","cat":"Dining Out","note":""},{"id":2136,"date":"2026-03-16","amount":650,"currency":"MXN","cat":"Food","note":""},{"id":2137,"date":"2026-03-16","amount":300,"currency":"MXN","cat":"House Build","note":""},{"id":2138,"date":"2026-03-17","amount":365,"currency":"MXN","cat":"Food","note":""},{"id":2139,"date":"2026-03-18","amount":654,"currency":"MXN","cat":"Food","note":""},{"id":2140,"date":"2026-03-18","amount":10800,"currency":"MXN","cat":"Horses","note":""},{"id":2141,"date":"2026-03-20","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2142,"date":"2026-03-20","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2143,"date":"2026-03-20","amount":215,"currency":"MXN","cat":"Fuel","note":""},{"id":2144,"date":"2026-03-20","amount":2650,"currency":"MXN","cat":"House Build","note":""},{"id":2145,"date":"2026-03-20","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2146,"date":"2026-03-20","amount":190,"currency":"MXN","cat":"Dogs","note":""},{"id":2147,"date":"2026-03-21","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2148,"date":"2026-03-21","amount":1435,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2149,"date":"2026-03-21","amount":150,"currency":"MXN","cat":"Dogs","note":""},{"id":2150,"date":"2026-03-22","amount":195,"currency":"MXN","cat":"Dining Out","note":""},{"id":2151,"date":"2026-03-22","amount":580,"currency":"MXN","cat":"Food","note":""},{"id":2152,"date":"2026-03-22","amount":4200,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2153,"date":"2026-03-22","amount":1100,"currency":"MXN","cat":"Dogs","note":""},{"id":2154,"date":"2026-03-23","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2155,"date":"2026-03-24","amount":50,"currency":"MXN","cat":"Fuel","note":""},{"id":2156,"date":"2026-03-24","amount":11200,"currency":"MXN","cat":"House Build","note":""},{"id":2157,"date":"2026-03-25","amount":250,"currency":"MXN","cat":"Dining Out","note":""},{"id":2158,"date":"2026-03-25","amount":70,"currency":"MXN","cat":"Food","note":""},{"id":2159,"date":"2026-03-25","amount":450,"currency":"MXN","cat":"Dogs","note":""},{"id":2160,"date":"2026-03-25","amount":500,"currency":"MXN","cat":"Dani","note":""},{"id":2161,"date":"2026-03-26","amount":120,"currency":"MXN","cat":"Dining Out","note":""},{"id":2162,"date":"2026-03-26","amount":395,"currency":"MXN","cat":"Food","note":""},{"id":2163,"date":"2026-03-26","amount":50,"currency":"MXN","cat":"Personal","note":""},{"id":2164,"date":"2026-03-27","amount":840,"currency":"MXN","cat":"Dining Out","note":""},{"id":2165,"date":"2026-03-27","amount":300,"currency":"MXN","cat":"Food","note":""},{"id":2166,"date":"2026-03-27","amount":100,"currency":"MXN","cat":"Fuel","note":""},{"id":2167,"date":"2026-03-27","amount":500,"currency":"MXN","cat":"Dani","note":"friend"},{"id":2168,"date":"2026-03-28","amount":150,"currency":"MXN","cat":"Food","note":""},{"id":2169,"date":"2026-03-28","amount":200,"currency":"MXN","cat":"Dani","note":"weed"},{"id":2170,"date":"2026-03-29","amount":300,"currency":"MXN","cat":"Dining Out","note":""},{"id":2171,"date":"2026-03-29","amount":180,"currency":"MXN","cat":"Food","note":""},{"id":2172,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2173,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2174,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Dani","note":"cell"},{"id":2175,"date":"2026-03-30","amount":1000,"currency":"MXN","cat":"Food","note":""},{"id":2176,"date":"2026-03-30","amount":170,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2177,"date":"2026-03-30","amount":50,"currency":"MXN","cat":"Dogs","note":""},{"id":2184,"date":"2026-03-31","amount":4508.82,"currency":"USD","cat":"ATM / BBVA","note":"est. Mar ATM div17"}];
+  saveAll();
+}
+
+function seedIncome() {
+  if (income.length > 0) return;
+  income = [
+    {"id":3000,"date":"2026-01-15","amount":3013.15,"source":"HorseClass — Instructor Pay","note":""},
+    {"id":3001,"date":"2026-01-15","amount":1158.00,"source":"Jellyfish","note":""},
+    {"id":3002,"date":"2026-01-15","amount":415.93,"source":"CC Rewards","note":""},
+    {"id":3003,"date":"2026-01-15","amount":118.96,"source":"Other","note":""},
+    {"id":3004,"date":"2026-01-15","amount":140.63,"source":"YouTube","note":""},
+    {"id":3005,"date":"2026-02-15","amount":4410.00,"source":"HorseClass — Owner Distribution","note":""},
+    {"id":3006,"date":"2026-02-15","amount":558.00,"source":"Jellyfish","note":""},
+    {"id":3007,"date":"2026-02-15","amount":135.77,"source":"YouTube","note":""},
+    {"id":3008,"date":"2026-03-15","amount":1079.00,"source":"Jellyfish","note":""},
+    {"id":3009,"date":"2026-03-15","amount":129.16,"source":"YouTube","note":""}
+  ];
+  saveAll();
+}
+
+// ══════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════
+init();
+// Show advisor as default
+document.getElementById('view-advisor').style.display = 'flex';
+if (SCRIPT_URL) loadFromSheets();
+</script>
+</body>
+</html>
