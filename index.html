@@ -1397,10 +1397,11 @@ async function sendMessage() {
   document.getElementById('send-btn').disabled = true;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
+        action: 'claude_proxy',
+        api_key: API_KEY,
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: buildFinancialContext(),
@@ -1665,4 +1666,3 @@ if (SCRIPT_URL) loadFromSheets();
 </script>
 </body>
 </html>
-
