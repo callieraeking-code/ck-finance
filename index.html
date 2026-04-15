@@ -470,12 +470,10 @@ nav { padding: 16px 12px; flex: 1; }
     <div class="logo-sub">Personal Advisor</div>
   </div>
   <nav>
-    <button class="nav-item active" onclick="switchView('advisor')">
-      <span class="nav-icon">✦</span><span>Advisor</span>
-    </button>
-    <button class="nav-item" onclick="switchView('dashboard')">
+    <button class="nav-item active" onclick="switchView('dashboard')">
       <span class="nav-icon">◈</span><span>Dashboard</span>
     </button>
+
     <button class="nav-item" onclick="switchView('expenses')">
       <span class="nav-icon">↓</span><span>Expenses</span>
     </button>
@@ -504,54 +502,6 @@ nav { padding: 16px 12px; flex: 1; }
 <!-- CONFIG BANNER -->
 <div class="config-banner show" id="config-banner">
   ⚙ Connect your Google Sheet and Claude API key in <strong style="cursor:pointer;text-decoration:underline;" onclick="switchView('settings')">Settings</strong> to get started.
-</div>
-
-<!-- ════ ADVISOR VIEW ════ -->
-<div class="view active" id="view-advisor" style="padding:32px;height:100vh;display:none;flex-direction:column;">
-  <div style="margin-bottom:20px;">
-    <h1 class="page-title">Your Financial Advisor</h1>
-    <p class="page-sub">Ask anything about your money. I know your numbers.</p>
-  </div>
-
-  <div class="chat-layout" style="flex:1;">
-    <div class="chat-main">
-      <div class="chat-messages" id="chat-messages">
-        <div class="msg ai">
-          <div class="msg-avatar">✦</div>
-          <div class="msg-bubble">
-            Hi Callie — I'm your personal financial advisor. I have access to your expenses, income, balance sheet, and Bitcoin position.<br><br>
-            You're currently <strong id="intro-pct">—</strong> of the way to your <strong>$2M goal</strong>, with a true monthly burn of around <strong>$925 USD + ₱19,000 pesos</strong>.<br><br>
-            What would you like to dig into today?
-          </div>
-        </div>
-      </div>
-      <div class="chat-input-area">
-        <textarea class="chat-input" id="chat-input" placeholder="Ask about your spending, income, goal progress, or anything financial…" onkeydown="handleKey(event)"></textarea>
-        <button class="btn-send" id="send-btn" onclick="sendMessage()">→</button>
-      </div>
-    </div>
-
-    <div class="chat-sidebar">
-      <div class="chat-context-card">
-        <h4>Live context</h4>
-        <div class="ctx-row"><span>Net worth</span><span id="ctx-nw">—</span></div>
-        <div class="ctx-row"><span>BTC holdings</span><span id="ctx-btc">—</span></div>
-        <div class="ctx-row"><span>Goal progress</span><span id="ctx-pct">—</span></div>
-        <div class="ctx-row"><span>This month exp.</span><span id="ctx-exp">—</span></div>
-        <div class="ctx-row"><span>This month inc.</span><span id="ctx-inc">—</span></div>
-      </div>
-
-      <div class="chat-context-card">
-        <h4>Ask me about…</h4>
-        <button class="prompt-chip" onclick="fillPrompt('Am I on track this month with spending?')">Am I on track this month?</button>
-        <button class="prompt-chip" onclick="fillPrompt('How far am I from my $2M Bitcoin and real estate goal?')">Goal progress update</button>
-        <button class="prompt-chip" onclick="fillPrompt('What are my biggest expense categories this year?')">Top expense categories</button>
-        <button class="prompt-chip" onclick="fillPrompt('Compare my income vs expenses for each month this year')">Income vs expenses</button>
-        <button class="prompt-chip" onclick="fillPrompt('What should I be watching out for financially right now?')">What to watch out for</button>
-        <button class="prompt-chip" onclick="fillPrompt('How is HorseClass performing and what does the debt look like?')">HorseClass check-in</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ════ DASHBOARD VIEW ════ -->
@@ -833,6 +783,7 @@ nav { padding: 16px 12px; flex: 1; }
     <div class="card-title">Data management</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <button class="btn btn-ghost" onclick="exportCSV()">↓ Export all data (CSV)</button>
+      <button class="btn btn-ghost" onclick="exportForClaude()" style="background:var(--gold);color:#1a1000;border:none;">✦ Export for Claude</button>
       <button class="btn btn-ghost" onclick="syncAllToSheets()">↑ Push all data to Sheets</button>
       <button class="btn btn-ghost" onclick="loadFromSheets()">↓ Pull fresh from Sheets</button>
     </div>
@@ -1307,171 +1258,12 @@ function buildExpCatChart(month) {
 // ══════════════════════════════════════════════
 // ADVISOR CONTEXT
 // ══════════════════════════════════════════════
-function updateAdvisorContext() {
-  const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const reEq   = latestSnap ? latestSnap.reEquity : 852000;
-  const nw     = latestSnap ? latestSnap.totalNW : 877360;
-  const btcV   = btcPos.value || 56000;
-  const combined = reEq + btcV;
-  const pct    = ((combined/2000000)*100).toFixed(1);
-  const curMonth = new Date().toISOString().slice(0,7);
-  const monthExp = expenses.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
-  const monthInc = income.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
-
-  document.getElementById('ctx-nw').textContent   = '$' + Math.round(nw).toLocaleString();
-  document.getElementById('ctx-btc').textContent  = '$' + (btcV).toLocaleString();
-  document.getElementById('ctx-pct').textContent  = pct + '%';
-  document.getElementById('ctx-exp').textContent  = '$' + Math.round(monthExp).toLocaleString();
-  document.getElementById('ctx-inc').textContent  = monthInc ? '$' + Math.round(monthInc).toLocaleString() : '—';
-  document.getElementById('intro-pct').textContent = pct + '%';
-}
-
-function buildFinancialContext() {
-  const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const curMonth   = new Date().toISOString().slice(0,7);
-  const prevMonth  = new Date(new Date().setMonth(new Date().getMonth()-1)).toISOString().slice(0,7);
-
-  const monthExp   = expenses.filter(e=>e.date.startsWith(curMonth));
-  const prevExp    = expenses.filter(e=>e.date.startsWith(prevMonth));
-  const monthInc   = income.filter(e=>e.date.startsWith(curMonth));
-
-  const expBycat = {};
-  monthExp.forEach(e => { expBycat[e.cat] = (expBycat[e.cat]||0) + e.amount; });
-
-  const ytdInc = income.filter(e=>e.date.startsWith(new Date().getFullYear().toString())).reduce((s,e)=>s+e.amount,0);
-  const ytdExp = expenses.filter(e=>e.date.startsWith(new Date().getFullYear().toString())).reduce((s,e)=>s+e.amount,0);
-
-  return `You are Callie King's personal financial advisor. You have real-time access to her complete financial data. Be direct, insightful, and specific — use actual numbers in every response. Callie lives in Mexico, earns primarily through HorseClass (online horse training business) and Jellyfish, and is working toward a $2 million net worth in Bitcoin + real estate to generate $100K/year passive income at 5%.
-
-CURRENT FINANCIAL SNAPSHOT:
-- Net worth: $${latestSnap ? Math.round(latestSnap.totalNW).toLocaleString() : '613,939'} (latest quarterly snapshot)
-- Real estate equity (after mortgages): $${latestSnap ? Math.round(latestSnap.reEquity).toLocaleString() : '858,592'} — Hill Rd $${latestSnap ? Math.round(latestSnap.hillEquity??157000).toLocaleString() : '157,000'} (value $${latestSnap ? Math.round(latestSnap.hillVal??250000).toLocaleString() : '250,000'} - mortgage $${latestSnap ? Math.round(latestSnap.hillLoan??93000).toLocaleString() : '93,000'}), Compass Rd $${latestSnap ? Math.round(latestSnap.compassEquity??400000).toLocaleString() : '400,000'} (unencumbered), Florida $${latestSnap ? Math.round(latestSnap.floridaEquity??115000).toLocaleString() : '115,000'} (unencumbered), Mexico $${latestSnap ? Math.round(latestSnap.mexicoEquity??180000).toLocaleString() : '180,000'} (unencumbered)
-- Bitcoin/crypto: $${(btcPos.value||56000).toLocaleString()}
-- Goal progress: ${(((latestSnap?.reEquity||852000) + (btcPos.value||56000)) / 2000000 * 100).toFixed(1)}% toward $2M
-- HorseClass liabilities: LOC ${latestSnap ? '$'+Math.round(latestSnap.loc).toLocaleString() : '~$79K'}, CC ${latestSnap ? '$'+Math.round(latestSnap.hccc).toLocaleString() : '~$10K'}
-
-THIS MONTH (${curMonth}):
-- Expenses logged: $${Math.round(monthExp.reduce((s,e)=>s+e.amount,0)).toLocaleString()} across ${monthExp.length} transactions
-- Top categories: ${Object.entries(expBycat).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${k} $${Math.round(v)}`).join(', ') || 'none yet'}
-- Income logged: $${Math.round(monthInc.reduce((s,e)=>s+e.amount,0)).toLocaleString()} from ${[...new Set(monthInc.map(e=>e.source))].join(', ') || 'none yet'}
-
-YEAR TO DATE:
-- Total income: $${Math.round(ytdInc).toLocaleString()}
-- Total expenses: $${Math.round(ytdExp).toLocaleString()}
-- Net: $${Math.round(ytdInc - ytdExp).toLocaleString()}
-
-MONTHLY BASELINES (from analysis):
-- Personal burn rate: ~$925 USD + ₱19,000 pesos/month (excl. construction, land, ATM transfers)
-- Fixed USD costs: ~$455/mo (health insurance + phone)
-- Pesos funded via ATM withdrawals — all peso spending flows through USD
-
-BUSINESS CONTEXT:
-- HorseClass: online horse training, events-based revenue, currently running LOC liability that needs watching
-- Jellyfish: consistent monthly income source
-- CRK Properties: 3 US rentals with low cap rates (appreciation play), Mexico property actively being built
-- Bitcoin: primary growth vehicle toward $2M goal, historically 20-40%/yr
-
-Give concise, data-driven advice. Reference specific numbers. Flag concerns directly. Celebrate wins. Always tie back to the $2M goal when relevant.`;
-}
 
 // ══════════════════════════════════════════════
 // AI CHAT
 // ══════════════════════════════════════════════
 let chatHistory = [];
 
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  if (!API_KEY) {
-    addMsg('ai', "To chat with your financial advisor, add your Claude API key in **Settings** — it takes 30 seconds and stays in your browser.");
-    return;
-  }
-
-  input.value = '';
-  addMsg('user', msg);
-  chatHistory.push({ role: 'user', content: msg });
-
-  const typingId = addTyping();
-  document.getElementById('send-btn').disabled = true;
-
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'claude_proxy',
-        api_key: API_KEY,
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: buildFinancialContext(),
-        messages: chatHistory
-      })
-    });
-
-    removeTyping(typingId);
-    const data = await res.json();
-
-    // Handle both direct API response and proxy-wrapped response
-    const payload = data.content ? data : (data.status === 'ok' ? data : data);
-
-    if (data.error || (data.type === 'error')) {
-      const errMsg = data.error?.message || data.message || 'Unknown API error';
-      addMsg('ai', `API error: ${errMsg}. Check your API key in Settings.`);
-      chatHistory.pop();
-    } else if (data.content && data.content[0] && data.content[0].text) {
-      const reply = data.content[0].text;
-      addMsg('ai', reply);
-      chatHistory.push({ role: 'assistant', content: reply });
-    } else {
-      addMsg('ai', 'Unexpected response format. Check your API key and Sheets URL in Settings.');
-      console.log('Response:', JSON.stringify(data));
-      chatHistory.pop();
-    }
-  } catch(e) {
-    removeTyping(typingId);
-    addMsg('ai', 'Connection error — check your internet and API key.');
-    chatHistory.pop();
-  }
-  document.getElementById('send-btn').disabled = false;
-}
-
-function addMsg(role, text) {
-  const msgs = document.getElementById('chat-messages');
-  const initials = role === 'ai' ? '✦' : 'CK';
-  const formatted = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-  const el = document.createElement('div');
-  el.className = 'msg ' + role;
-  el.innerHTML = `<div class="msg-avatar">${initials}</div><div class="msg-bubble">${formatted}</div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return el;
-}
-
-function addTyping() {
-  const msgs = document.getElementById('chat-messages');
-  const id = Date.now();
-  const el = document.createElement('div');
-  el.className = 'msg ai'; el.id = 'typing-'+id;
-  el.innerHTML = `<div class="msg-avatar">✦</div><div class="msg-bubble"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return id;
-}
-
-function removeTyping(id) {
-  const el = document.getElementById('typing-'+id);
-  if (el) el.remove();
-}
-
-function fillPrompt(text) {
-  document.getElementById('chat-input').value = text;
-  document.getElementById('chat-input').focus();
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
 
 // ══════════════════════════════════════════════
 // SETTINGS
@@ -1505,7 +1297,7 @@ function switchView(name) {
   document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); v.style.display=''; });
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const v = document.getElementById('view-'+name);
-  if (name === 'advisor') { v.style.display='flex'; } else { v.classList.add('active'); }
+  v.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.toLowerCase().includes(name.slice(0,4))) n.classList.add('active'); });
 
   if (name === 'dashboard') updateDashboard();
@@ -1513,7 +1305,7 @@ function switchView(name) {
   if (name === 'bitcoin')   updateBTCView();
   if (name === 'expenses')  { renderExpRecent(); populateMonthFilters(); }
   if (name === 'income')    { renderIncRecent(); populateMonthFilters(); }
-  if (name === 'advisor')   updateAdvisorContext();
+
 }
 
 function switchTab(group, tab) {
@@ -1527,6 +1319,91 @@ function switchTab(group, tab) {
   if (group==='exp' && tab==='history')  { populateMonthFilters(); renderExpHistory(); }
   if (group==='inc' && tab==='history')  { populateMonthFilters(); renderIncHistory(); }
   if (group==='bal' && tab==='history')  renderBalHistory();
+}
+
+
+// ══════════════════════════════════════════════
+// EXPORT FOR CLAUDE
+// ══════════════════════════════════════════════
+function exportForClaude() {
+  const now = new Date();
+  const months = getMonths();
+
+  // Build monthly expense summary
+  let expenseSummary = '';
+  [...months].reverse().forEach(m => {
+    const [y, mo] = m.split('-');
+    const label = MONTHS[+mo-1] + ' ' + y;
+    const mExp = expenses.filter(e => e.date.startsWith(m));
+    const usdTotal = mExp.filter(e=>e.currency==='USD').reduce((s,e)=>s+e.amount,0);
+    const mxnTotal = mExp.filter(e=>e.currency==='MXN').reduce((s,e)=>s+e.amount,0);
+    const cats = {};
+    mExp.forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.amount; });
+    const topCats = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6)
+      .map(([k,v]) => `${k}: ${Math.round(v).toLocaleString()}`).join(', ');
+    const mInc = income.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0);
+    expenseSummary += `\n${label}:\n  USD spent: $${Math.round(usdTotal).toLocaleString()} | Pesos spent: ₱${Math.round(mxnTotal).toLocaleString()} | Income: $${Math.round(mInc).toLocaleString()}\n  Top categories: ${topCats}\n`;
+  });
+
+  // Income by source YTD
+  const incBySrc = {};
+  income.forEach(e => { incBySrc[e.source] = (incBySrc[e.source]||0) + e.amount; });
+  const incSummary = Object.entries(incBySrc).sort((a,b)=>b[1]-a[1])
+    .map(([k,v]) => `  ${k}: $${Math.round(v).toLocaleString()}`).join('\n');
+
+  // Latest balance sheet
+  const snap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const snapSummary = snap ? `
+  Date: ${snap.date} (${snap.quarter})
+  Personal assets: $${Math.round(snap.personalAssets).toLocaleString()} (Cash $${Math.round(snap.cash||0).toLocaleString()}, Roth $${Math.round(snap.roth||0).toLocaleString()}, Crypto $${Math.round(snap.crypto||0).toLocaleString()}, Life $${Math.round(snap.life||0).toLocaleString()})
+  RE equity (after mortgages): $${Math.round(snap.reEquity).toLocaleString()} (Hill $${Math.round(snap.hillEquity||0).toLocaleString()}, Compass $${Math.round(snap.compassEquity||0).toLocaleString()}, Florida $${Math.round(snap.floridaEquity||0).toLocaleString()}, Mexico $${Math.round(snap.mexicoEquity||0).toLocaleString()})
+  HorseClass net: $${Math.round(snap.hcNet||0).toLocaleString()} (LOC $${Math.round(snap.loc||0).toLocaleString()}, CC $${Math.round(snap.hccc||0).toLocaleString()}, Loans $${Math.round(snap.loans||0).toLocaleString()})
+  Total NW: $${Math.round(snap.totalNW).toLocaleString()}` : '  No snapshot entered yet';
+
+  // BTC
+  const btcSummary = `  Holdings value: $${(btcPos.value||0).toLocaleString()} | Amount: ${btcPos.amount||0} BTC @ $${(btcPos.price||0).toLocaleString()}`;
+  const reEq = snap ? snap.reEquity : 852000;
+  const combined = reEq + (btcPos.value||56000);
+  const goalPct = ((combined/2000000)*100).toFixed(1);
+
+  const report = `CK FINANCIAL SNAPSHOT — ${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+${'='.repeat(60)}
+
+MONTHLY EXPENSE & INCOME SUMMARY
+${expenseSummary}
+INCOME YTD BY SOURCE
+${incSummary || '  None logged yet'}
+
+LATEST BALANCE SHEET
+${snapSummary}
+
+BITCOIN / GOAL PROGRESS
+${btcSummary}
+  Combined BTC + RE: $${Math.round(combined).toLocaleString()} (${goalPct}% of $2M goal)
+  At goal — passive income: $8,333/mo at 5%
+
+MONTHLY BASELINES (from analysis)
+  Personal burn: ~$925 USD + ₱19,000 pesos/mo (excl. construction, ATM transfers)
+  Fixed USD costs: ~$455/mo (health insurance + phone)
+${'='.repeat(60)}`;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(report).then(() => {
+    showToast('Copied to clipboard — paste into Claude ✓');
+  }).catch(() => {
+    // Fallback: show in a textarea
+    const ta = document.createElement('textarea');
+    ta.value = report;
+    ta.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;height:60%;z-index:9999;background:#1E1E1E;color:#F0EDE8;padding:16px;border:1px solid #C8922A;border-radius:8px;font-size:12px;font-family:monospace;';
+    document.body.appendChild(ta);
+    ta.select();
+    const close = document.createElement('button');
+    close.textContent = '× Close';
+    close.style.cssText = 'position:fixed;top:calc(50% - 30vh - 30px);left:50%;transform:translateX(-50%);z-index:10000;background:#C8922A;color:#1a1000;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;';
+    close.onclick = () => { document.body.removeChild(ta); document.body.removeChild(close); };
+    document.body.appendChild(close);
+    showToast('Select all and copy the text above');
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -1669,7 +1546,7 @@ checkPinAuth();
 // ══════════════════════════════════════════════
 init();
 // Show advisor as default
-document.getElementById('view-advisor').style.display = 'flex';
+switchView('dashboard');
 if (SCRIPT_URL) loadFromSheets();
 </script>
 </body>
