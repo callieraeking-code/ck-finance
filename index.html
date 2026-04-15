@@ -400,65 +400,12 @@ nav { padding: 16px 12px; flex: 1; }
   .chat-sidebar { display: none; }
   .view { padding: 20px 16px; }
 }
-
-<style>
-#pin-screen {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: #0E0E0E;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9999;
-  flex-direction: column;
-  gap: 24px;
-}
-.pin-logo { font-family: 'Playfair Display', serif; font-size: 28px; color: #E8B84B; letter-spacing: 0.02em; }
-.pin-sub { font-size: 13px; color: #5A5652; letter-spacing: 0.08em; text-transform: uppercase; margin-top: -16px; }
-.pin-dots { display: flex; gap: 14px; }
-.pin-dot { width: 14px; height: 14px; border-radius: 50%; background: #252525; border: 1px solid #3a3a3a; transition: background 0.15s; }
-.pin-dot.filled { background: #C8922A; border-color: #C8922A; }
-.pin-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; }
-.pin-btn {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: #1E1E1E; border: 1px solid #2a2a2a;
-  color: #F0EDE8; font-size: 20px; font-family: 'Inter', sans-serif;
-  cursor: pointer; transition: background 0.1s, transform 0.1s;
-}
-.pin-btn:hover { background: #252525; }
-.pin-btn:active { transform: scale(0.94); background: #2a2a2a; }
-.pin-btn.del { font-size: 16px; color: #5A5652; }
-.pin-error { font-size: 13px; color: #E76F51; height: 18px; text-align: center; }
-.pin-change { font-size: 11px; color: #3a3a3a; text-align: center; cursor: pointer; text-decoration: underline; }
-.pin-change:hover { color: #5A5652; }
-</style>
+5652; }
 </style>
 </head>
 <body>
 
-<div id="pin-screen">
-  <div class="pin-logo">CK Finance</div>
-  <div class="pin-sub">Personal Advisor</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="d0"></div>
-    <div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div>
-    <div class="pin-dot" id="d3"></div>
-  </div>
-  <div class="pin-error" id="pin-error"></div>
-  <div class="pin-pad">
-    <button class="pin-btn" onclick="pinKey('1')">1</button>
-    <button class="pin-btn" onclick="pinKey('2')">2</button>
-    <button class="pin-btn" onclick="pinKey('3')">3</button>
-    <button class="pin-btn" onclick="pinKey('4')">4</button>
-    <button class="pin-btn" onclick="pinKey('5')">5</button>
-    <button class="pin-btn" onclick="pinKey('6')">6</button>
-    <button class="pin-btn" onclick="pinKey('7')">7</button>
-    <button class="pin-btn" onclick="pinKey('8')">8</button>
-    <button class="pin-btn" onclick="pinKey('9')">9</button>
-    <button class="pin-btn del" onclick="pinKey('c')">✕</button>
-    <button class="pin-btn" onclick="pinKey('0')">0</button>
-    <button class="pin-btn del" onclick="pinKey('del')">⌫</button>
-  </div>
-  <div class="pin-change" onclick="changePin()">change PIN</div>
-</div>
+
 
 
 <div class="layout">
@@ -540,17 +487,42 @@ nav { padding: 16px 12px; flex: 1; }
       <span><span style="color:var(--text3);" id="goal-pct-label">—</span> · Gap: <span style="font-family:'JetBrains Mono',monospace;" id="goal-gap">—</span></span>
     </div>
     <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-bar" style="width:0%"></div></div>
-    <div style="font-size:11px;color:var(--text3);margin-top:6px;" id="goal-5pct">At goal: $100,000/yr passive income · $8,333/mo</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;">At goal: $100,000/yr passive income · $8,333/mo</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-    <div class="chart-card">
-      <h3>Income vs Expenses</h3>
-      <div class="chart-wrap"><canvas id="chart-inc-exp"></canvas></div>
+  <!-- Row 1: Income vs Expenses + Monthly pesos -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>Income vs expenses (USD)</h3>
+      <div class="chart-wrap"><canvas id="chart-inc-exp" role="img" aria-label="Monthly income vs USD expenses bar chart"></canvas></div>
     </div>
-    <div class="chart-card">
-      <h3>Expense breakdown</h3>
-      <div class="chart-wrap"><canvas id="chart-exp-cat"></canvas></div>
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>Monthly pesos spending</h3>
+      <div class="chart-wrap"><canvas id="chart-pesos-monthly" role="img" aria-label="Monthly pesos spending bar chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Row 2: Expense category donut + Pesos category breakdown -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>USD categories — YTD</h3>
+      <div class="chart-wrap"><canvas id="chart-exp-cat" role="img" aria-label="USD expense categories donut chart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>Pesos categories — YTD</h3>
+      <div class="chart-wrap" style="height:260px;"><canvas id="chart-pesos-cat" role="img" aria-label="Pesos expense categories bar chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Income by source + Daily spend this month -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>Income by source — YTD</h3>
+      <div class="chart-wrap"><canvas id="chart-inc-src" role="img" aria-label="Income by source donut chart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0;">
+      <h3>Daily spending — this month</h3>
+      <div class="chart-wrap"><canvas id="chart-daily-month" role="img" aria-label="Daily spending this month bar chart"></canvas></div>
     </div>
   </div>
 </div>
@@ -901,6 +873,8 @@ function init() {
   seedExpenses();
   seedIncome();
   refreshAll();
+  setTimeout(updateDashboard, 150);
+  setTimeout(updateDashboard, 100);
   updateAdvisorContext();
 }
 
@@ -1190,68 +1164,182 @@ function buildProjectionChart(current) {
 // ══════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════
+let incExpChart, expCatChart, pesosCatChart, pesosMonthChart, incSrcChart, dailyMonthChart;
+
 function updateDashboard() {
-  const now   = new Date();
+  const now = new Date();
   const curMonth = now.toISOString().slice(0,7);
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const el = document.getElementById('dash-date');
+  if (el) el.textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 
   const latestSnap = [...snapshots].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const nw   = latestSnap ? latestSnap.totalNW : 877360;
-  const reEq = latestSnap ? latestSnap.reEquity : 852000;
-  const btcV = btcPos.value || 56000;
+  const nw     = latestSnap ? latestSnap.totalNW : 877360;
+  const reEq   = latestSnap ? latestSnap.reEquity : 852000;
+  const btcV   = btcPos.value || 56000;
   const combined = reEq + btcV;
-  const pct  = Math.min((combined/2000000)*100,100);
-  const gap  = 2000000 - combined;
+  const pct    = Math.min((combined/2000000)*100, 100);
+  const gap    = 2000000 - combined;
 
-  document.getElementById('d-networth').textContent = '$' + Math.round(nw).toLocaleString();
-  document.getElementById('d-goal-pct').textContent = pct.toFixed(1) + '%';
-  document.getElementById('goal-current').textContent = '$' + Math.round(combined).toLocaleString();
-  document.getElementById('goal-pct-label').textContent = pct.toFixed(1) + '%';
-  document.getElementById('goal-gap').textContent = '$' + Math.round(gap).toLocaleString();
-  document.getElementById('goal-bar').style.width = pct + '%';
+  setText('d-networth', '$' + Math.round(nw).toLocaleString());
+  setText('d-goal-pct', pct.toFixed(1) + '%');
+  setText('goal-current', '$' + Math.round(combined).toLocaleString());
+  setText('goal-pct-label', pct.toFixed(1) + '%');
+  setText('goal-gap', '$' + Math.round(gap).toLocaleString());
+  const bar = document.getElementById('goal-bar');
+  if (bar) bar.style.width = pct + '%';
 
   const monthInc = income.filter(e=>e.date.startsWith(curMonth)).reduce((s,e)=>s+e.amount,0);
   const monthUSD = expenses.filter(e=>e.date.startsWith(curMonth)&&e.currency==='USD').reduce((s,e)=>s+e.amount,0);
   const monthMXN = expenses.filter(e=>e.date.startsWith(curMonth)&&e.currency==='MXN').reduce((s,e)=>s+e.amount,0);
-
-  document.getElementById('d-income').textContent = '$' + Math.round(monthInc).toLocaleString();
-  document.getElementById('d-income-sub').textContent = income.filter(e=>e.date.startsWith(curMonth)).length + ' transactions';
-  document.getElementById('d-expense').textContent = '$' + Math.round(monthUSD).toLocaleString();
-  document.getElementById('d-expense-sub').textContent = '+ ₱' + Math.round(monthMXN).toLocaleString() + ' pesos';
+  setText('d-income', '$' + Math.round(monthInc).toLocaleString());
+  setText('d-income-sub', income.filter(e=>e.date.startsWith(curMonth)).length + ' transactions');
+  setText('d-expense', '$' + Math.round(monthUSD).toLocaleString());
+  setText('d-expense-sub', '+ ₱' + Math.round(monthMXN).toLocaleString() + ' pesos');
 
   buildIncExpChart();
-  buildExpCatChart(curMonth);
+  buildPesosMonthChart();
+  buildExpCatChart();
+  buildPesosCatChart();
+  buildIncSrcChart();
+  buildDailyMonthChart(curMonth);
 }
 
-function buildIncExpChart() {
-  if (incExpChart) incExpChart.destroy();
-  const months = getMonths().slice(0,6).reverse();
-  const incData = months.map(m => income.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0));
-  const expData = months.map(m => expenses.filter(e=>e.date.startsWith(m)&&e.currency==='USD').reduce((s,e)=>s+e.amount,0));
-  const labels  = months.map(m => { const [y,mo]=m.split('-'); return MONTHS[+mo-1].slice(0,3); });
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
 
-  incExpChart = new Chart(document.getElementById('chart-inc-exp'), {
+function destroyChart(c) { try { if (c) c.destroy(); } catch(e){} return null; }
+
+function buildIncExpChart() {
+  incExpChart = destroyChart(incExpChart);
+  const months = getMonths().slice(0,6).reverse();
+  if (!months.length) return;
+  const labels  = months.map(m => { const [y,mo]=m.split('-'); return MONTHS[+mo-1].slice(0,3)+' '+y.slice(2); });
+  const incData = months.map(m => Math.round(income.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0)));
+  const expData = months.map(m => Math.round(expenses.filter(e=>e.date.startsWith(m)&&e.currency==='USD').reduce((s,e)=>s+e.amount,0)));
+  const canvas = document.getElementById('chart-inc-exp');
+  if (!canvas) return;
+  incExpChart = new Chart(canvas, {
     type: 'bar',
     data: { labels, datasets: [
-      { label: 'Income', data: incData, backgroundColor: 'rgba(87,204,153,0.7)', borderRadius: 4 },
-      { label: 'Expenses (USD)', data: expData, backgroundColor: 'rgba(231,111,81,0.5)', borderRadius: 4 }
+      { label: 'Income $', data: incData, backgroundColor: 'rgba(87,204,153,0.8)', borderRadius: 4 },
+      { label: 'Expenses $', data: expData, backgroundColor: 'rgba(231,111,81,0.7)', borderRadius: 4 }
     ]},
-    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{labels:{color:'#9A9490',font:{size:11}}}}, scales:{x:{ticks:{color:'#5A5652',font:{size:11}}},y:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}} }
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{color:'#9A9490',font:{size:11},boxWidth:10} } },
+      scales:{ x:{ticks:{color:'#5A5652',font:{size:10}}}, y:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(255,255,255,0.05)'}} }
+    }
   });
 }
 
-function buildExpCatChart(month) {
-  if (expCatChart) expCatChart.destroy();
-  const data = expenses.filter(e=>e.date.startsWith(month));
-  const cats = {};
-  data.forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.amount; });
-  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const colors = ['#C8922A','#2A9D8F','#E76F51','#57CC99','#E8B84B','#9A9490','#7F77DD','#D4537E'];
+function buildPesosMonthChart() {
+  pesosMonthChart = destroyChart(pesosMonthChart);
+  const months = getMonths().slice(0,6).reverse();
+  if (!months.length) return;
+  const labels = months.map(m => { const [y,mo]=m.split('-'); return MONTHS[+mo-1].slice(0,3)+' '+y.slice(2); });
+  // Exclude House Build and ATM for clean living expenses view
+  const data = months.map(m => Math.round(
+    expenses.filter(e=>e.date.startsWith(m)&&e.currency==='MXN'&&e.cat!=='House Build').reduce((s,e)=>s+e.amount,0)
+  ));
+  const dataFull = months.map(m => Math.round(
+    expenses.filter(e=>e.date.startsWith(m)&&e.currency==='MXN'&&e.cat==='House Build').reduce((s,e)=>s+e.amount,0)
+  ));
+  const canvas = document.getElementById('chart-pesos-monthly');
+  if (!canvas) return;
+  pesosMonthChart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'Living expenses', data, backgroundColor: 'rgba(200,146,42,0.8)', borderRadius: 4, stack:'s' },
+      { label: 'House Build', data: dataFull, backgroundColor: 'rgba(90,86,82,0.6)', borderRadius: 4, stack:'s' }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{color:'#9A9490',font:{size:11},boxWidth:10} } },
+      scales:{ x:{stacked:true,ticks:{color:'#5A5652',font:{size:10}}}, y:{stacked:true,ticks:{color:'#5A5652',font:{size:10},callback:v=>'₱'+(v/1000).toFixed(0)+'K'},grid:{color:'rgba(255,255,255,0.05)'}} }
+    }
+  });
+}
 
-  expCatChart = new Chart(document.getElementById('chart-exp-cat'), {
+function buildExpCatChart() {
+  expCatChart = destroyChart(expCatChart);
+  const usdExp = expenses.filter(e=>e.currency==='USD'&&e.cat!=='ATM / BBVA');
+  const cats = {};
+  usdExp.forEach(e => { cats[e.cat]=(cats[e.cat]||0)+e.amount; });
+  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if (!sorted.length) return;
+  const colors = ['#C8922A','#2A9D8F','#E76F51','#57CC99','#E8B84B','#9A9490','#7F77DD','#D4537E'];
+  const canvas = document.getElementById('chart-exp-cat');
+  if (!canvas) return;
+  expCatChart = new Chart(canvas, {
     type: 'doughnut',
-    data: { labels: sorted.map(p=>p[0]), datasets: [{ data: sorted.map(p=>Math.round(p[1])), backgroundColor: colors, borderWidth: 1, borderColor: '#1E1E1E' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{position:'right',labels:{color:'#9A9490',font:{size:10},boxWidth:10,padding:8}} } }
+    data: { labels: sorted.map(p=>p[0]), datasets:[{ data:sorted.map(p=>Math.round(p[1])), backgroundColor:colors, borderWidth:1, borderColor:'#161616' }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{color:'#9A9490',font:{size:10},boxWidth:10,padding:6} } }
+    }
+  });
+}
+
+function buildPesosCatChart() {
+  pesosCatChart = destroyChart(pesosCatChart);
+  const mxnExp = expenses.filter(e=>e.currency==='MXN'&&e.cat!=='House Build');
+  const cats = {};
+  mxnExp.forEach(e => { cats[e.cat]=(cats[e.cat]||0)+e.amount; });
+  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if (!sorted.length) return;
+  const canvas = document.getElementById('chart-pesos-cat');
+  if (!canvas) return;
+  pesosCatChart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels: sorted.map(p=>p[0]), datasets:[{ data:sorted.map(p=>Math.round(p[1])), backgroundColor:'#C8922A', borderRadius:4 }] },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'₱'+(v/1000).toFixed(0)+'K'},grid:{color:'rgba(255,255,255,0.05)'}}, y:{ticks:{color:'#9A9490',font:{size:10}}} }
+    }
+  });
+}
+
+function buildIncSrcChart() {
+  incSrcChart = destroyChart(incSrcChart);
+  const srcs = {};
+  income.forEach(e => { srcs[e.source]=(srcs[e.source]||0)+e.amount; });
+  const sorted = Object.entries(srcs).sort((a,b)=>b[1]-a[1]);
+  if (!sorted.length) return;
+  const colors = ['#57CC99','#2A9D8F','#C8922A','#E8B84B','#7F77DD','#9A9490'];
+  const canvas = document.getElementById('chart-inc-src');
+  if (!canvas) return;
+  incSrcChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: { labels: sorted.map(p=>p[0]+' $'+Math.round(p[1]).toLocaleString()), datasets:[{ data:sorted.map(p=>Math.round(p[1])), backgroundColor:colors, borderWidth:1, borderColor:'#161616' }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{color:'#9A9490',font:{size:10},boxWidth:10,padding:6} } }
+    }
+  });
+}
+
+function buildDailyMonthChart(month) {
+  dailyMonthChart = destroyChart(dailyMonthChart);
+  const [y,m] = month.split('-').map(Number);
+  const days = new Date(y, m, 0).getDate();
+  const usdByDay = Array(days).fill(0);
+  const mxnByDay = Array(days).fill(0);
+  expenses.filter(e=>e.date.startsWith(month)).forEach(e => {
+    const d = parseInt(e.date.slice(8)) - 1;
+    if (e.currency==='USD') usdByDay[d] += e.amount;
+    else mxnByDay[d] += e.amount / 17;
+  });
+  const labels = Array.from({length:days},(_,i)=>i+1);
+  const canvas = document.getElementById('chart-daily-month');
+  if (!canvas) return;
+  dailyMonthChart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'USD', data: usdByDay.map(v=>Math.round(v)), backgroundColor: 'rgba(42,157,143,0.7)', borderRadius: 2 },
+      { label: 'Pesos÷17', data: mxnByDay.map(v=>Math.round(v)), backgroundColor: 'rgba(200,146,42,0.6)', borderRadius: 2 }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{color:'#9A9490',font:{size:11},boxWidth:10} } },
+      scales:{ x:{ticks:{color:'#5A5652',font:{size:9},maxTicksLimit:15}}, y:{ticks:{color:'#5A5652',font:{size:10},callback:v=>'$'+v},grid:{color:'rgba(255,255,255,0.05)'}} }
+    }
   });
 }
 
@@ -1294,18 +1382,19 @@ function saveAPIKey() {
 // NAVIGATION
 // ══════════════════════════════════════════════
 function switchView(name) {
-  document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); v.style.display=''; });
+  document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const v = document.getElementById('view-'+name);
-  v.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.toLowerCase().includes(name.slice(0,4))) n.classList.add('active'); });
-
-  if (name === 'dashboard') updateDashboard();
-  if (name === 'balance')   renderBalHistory();
-  if (name === 'bitcoin')   updateBTCView();
-  if (name === 'expenses')  { renderExpRecent(); populateMonthFilters(); }
-  if (name === 'income')    { renderIncRecent(); populateMonthFilters(); }
-
+  if (v) v.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if ((n.getAttribute('onclick')||'').includes("'"+name+"'")) n.classList.add('active');
+  });
+  if (name==='dashboard') { setTimeout(updateDashboard,100); }
+  if (name==='balance')   { renderBalHistory(); }
+  if (name==='bitcoin')   { updateBTCView(); }
+  if (name==='expenses')  { populateMonthFilters(); setTimeout(renderExpRecent,50); }
+  if (name==='income')    { populateMonthFilters(); setTimeout(renderIncRecent,50); }
+  if (name==='settings')  { document.getElementById('s-sheets-url').value=SCRIPT_URL; document.getElementById('s-api-key').value=API_KEY; }
 }
 
 function switchTab(group, tab) {
@@ -1470,76 +1559,67 @@ function seedIncome() {
 
 
 // ══════════════════════════════════════════════
-// PIN LOCK
+// CSV EXPORT
 // ══════════════════════════════════════════════
-const DEFAULT_PIN = '2026';
-let pinBuffer = '';
-
-function checkPinAuth() {
-  const stored = localStorage.getItem('ck_pin_auth');
-  const pin    = localStorage.getItem('ck_pin') || DEFAULT_PIN;
-  if (stored) {
-    const { expires } = JSON.parse(stored);
-    if (Date.now() < expires) {
-      document.getElementById('pin-screen').style.display = 'none';
-      return true;
-    }
-  }
-  return false;
+function exportCSV() {
+  const all = [
+    ['type','date','currency','amount','category_or_source','notes'],
+    ...expenses.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>['expense',e.date,e.currency,e.amount,e.cat,e.note||'']),
+    ...income.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>['income',e.date,'USD',e.amount,e.source,e.note||''])
+  ];
+  const csv = all.map(r=>r.map(v=>typeof v==='string'&&v.includes(',')?`"${v}"`:v).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `ck_finances_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSV exported ✓');
 }
 
-function pinKey(k) {
-  const pin = localStorage.getItem('ck_pin') || DEFAULT_PIN;
-  if (k === 'del') {
-    pinBuffer = pinBuffer.slice(0, -1);
-  } else if (k === 'c') {
-    pinBuffer = '';
-  } else if (pinBuffer.length < 4) {
-    pinBuffer += k;
-  }
-  updatePinDots();
-  if (pinBuffer.length === 4) {
-    if (pinBuffer === pin) {
-      localStorage.setItem('ck_pin_auth', JSON.stringify({ expires: Date.now() + 24*60*60*1000 }));
-      document.getElementById('pin-screen').style.display = 'none';
-      pinBuffer = '';
-      updatePinDots();
-    } else {
-      document.getElementById('pin-error').textContent = 'incorrect PIN';
-      setTimeout(() => {
-        pinBuffer = '';
-        updatePinDots();
-        document.getElementById('pin-error').textContent = '';
-      }, 800);
-    }
-  }
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById('d'+i).classList.toggle('filled', i < pinBuffer.length);
-  }
+// ══════════════════════════════════════════════
+// REFRESH ALL
+// ══════════════════════════════════════════════
+function refreshAll() {
+  renderExpRecent();
+  renderIncRecent();
+  populateMonthFilters();
+  updateAdvisorContext();
 }
 
-function changePin() {
-  const newPin = prompt('Enter new 4-digit PIN:');
-  if (newPin && /^\d{4}$/.test(newPin)) {
-    localStorage.setItem('ck_pin', newPin);
-    alert('PIN updated to ' + newPin + ' — remember it!');
-  } else if (newPin) {
-    alert('PIN must be exactly 4 digits');
-  }
+// ══════════════════════════════════════════════
+// SEED 2026 EXPENSE DATA
+// ══════════════════════════════════════════════
+function seedExpenses() {
+  if (expenses.length > 0) return;
+  expenses = [{"id":2000,"date":"2026-01-01","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2001,"date":"2026-01-01","amount":160,"currency":"MXN","cat":"Dogs","note":""},{"id":2002,"date":"2026-01-01","amount":100,"currency":"MXN","cat":"Dani","note":""},{"id":2003,"date":"2026-01-03","amount":1000,"currency":"MXN","cat":"Food","note":""},{"id":2004,"date":"2026-01-03","amount":400,"currency":"MXN","cat":"Dani","note":""},{"id":2005,"date":"2026-01-04","amount":204,"currency":"MXN","cat":"Dining Out","note":""},{"id":2006,"date":"2026-01-04","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2007,"date":"2026-01-05","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2008,"date":"2026-01-05","amount":100,"currency":"MXN","cat":"Dogs","note":""},{"id":2009,"date":"2026-01-07","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2010,"date":"2026-01-08","amount":130,"currency":"MXN","cat":"Dining Out","note":""},{"id":2011,"date":"2026-01-08","amount":150,"currency":"MXN","cat":"Fuel","note":""},{"id":2012,"date":"2026-01-08","amount":100,"currency":"MXN","cat":"Dogs","note":""},{"id":2013,"date":"2026-01-08","amount":200,"currency":"MXN","cat":"Motorcycle","note":""},{"id":2014,"date":"2026-01-09","amount":220,"currency":"MXN","cat":"Fuel","note":""},{"id":2015,"date":"2026-01-10","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2016,"date":"2026-01-10","amount":46,"currency":"MXN","cat":"House Build","note":""},{"id":2017,"date":"2026-01-10","amount":200,"currency":"MXN","cat":"Personal","note":""},{"id":2018,"date":"2026-01-12","amount":865,"currency":"MXN","cat":"Food","note":""},{"id":2019,"date":"2026-01-12","amount":30,"currency":"MXN","cat":"Dogs","note":""},{"id":2020,"date":"2026-01-13","amount":155,"currency":"MXN","cat":"Food","note":""},{"id":2021,"date":"2026-01-13","amount":90,"currency":"MXN","cat":"Dogs","note":""},{"id":2022,"date":"2026-01-14","amount":379,"currency":"MXN","cat":"Food","note":""},{"id":2023,"date":"2026-01-14","amount":100,"currency":"MXN","cat":"Fuel","note":""},{"id":2024,"date":"2026-01-14","amount":200,"currency":"MXN","cat":"Gallinas","note":""},{"id":2025,"date":"2026-01-14","amount":100,"currency":"MXN","cat":"Dani","note":""},{"id":2026,"date":"2026-01-15","amount":900,"currency":"MXN","cat":"Food","note":""},{"id":2027,"date":"2026-01-15","amount":400,"currency":"MXN","cat":"Dogs","note":""},{"id":2055,"date":"2026-01-15","amount":110.18,"currency":"USD","cat":"Home Expenses","note":""},{"id":2056,"date":"2026-01-15","amount":44.9,"currency":"USD","cat":"Food","note":""},{"id":2057,"date":"2026-01-15","amount":133.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2058,"date":"2026-01-15","amount":42.24,"currency":"USD","cat":"Dining Out","note":""},{"id":2059,"date":"2026-01-15","amount":84.41,"currency":"USD","cat":"Misc","note":""},{"id":2060,"date":"2026-01-15","amount":32.74,"currency":"USD","cat":"Subscriptions","note":""},{"id":2061,"date":"2026-01-15","amount":120.0,"currency":"USD","cat":"Phone","note":""},{"id":2062,"date":"2026-01-15","amount":484.95,"currency":"USD","cat":"Travel","note":""},{"id":2063,"date":"2026-01-15","amount":7.94,"currency":"USD","cat":"Books & Edu","note":""},{"id":2064,"date":"2026-01-15","amount":232.0,"currency":"USD","cat":"Motorcycle","note":""},{"id":2065,"date":"2026-01-15","amount":150.0,"currency":"USD","cat":"CC Fees","note":""},{"id":2066,"date":"2026-01-15","amount":44.58,"currency":"USD","cat":"Personal","note":""},{"id":2067,"date":"2026-01-15","amount":70.19,"currency":"USD","cat":"Internet","note":""},{"id":2028,"date":"2026-01-16","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2029,"date":"2026-01-16","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2030,"date":"2026-01-16","amount":700,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2031,"date":"2026-01-16","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2032,"date":"2026-01-16","amount":50,"currency":"MXN","cat":"Charity","note":""},{"id":2033,"date":"2026-01-16","amount":450,"currency":"MXN","cat":"Horses","note":""},{"id":2034,"date":"2026-01-17","amount":600,"currency":"MXN","cat":"Food","note":""},{"id":2035,"date":"2026-01-19","amount":140,"currency":"MXN","cat":"Dining Out","note":""},{"id":2036,"date":"2026-01-19","amount":150,"currency":"MXN","cat":"Food","note":""},{"id":2037,"date":"2026-01-19","amount":40,"currency":"MXN","cat":"Dogs","note":""},{"id":2038,"date":"2026-01-20","amount":222,"currency":"MXN","cat":"Food","note":""},{"id":2039,"date":"2026-01-21","amount":505,"currency":"MXN","cat":"Dining Out","note":""},{"id":2040,"date":"2026-01-21","amount":370,"currency":"MXN","cat":"Fuel","note":""},{"id":2041,"date":"2026-01-21","amount":11500,"currency":"MXN","cat":"House Build","note":""},{"id":2042,"date":"2026-01-21","amount":2540,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2043,"date":"2026-01-21","amount":1120,"currency":"MXN","cat":"Personal","note":""},{"id":2044,"date":"2026-01-23","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2045,"date":"2026-01-23","amount":250,"currency":"MXN","cat":"Dogs","note":""},{"id":2046,"date":"2026-01-24","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2047,"date":"2026-01-24","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2048,"date":"2026-01-26","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2049,"date":"2026-01-26","amount":1700,"currency":"MXN","cat":"House Build","note":""},{"id":2050,"date":"2026-01-27","amount":180,"currency":"MXN","cat":"Fuel","note":""},{"id":2051,"date":"2026-01-27","amount":3250,"currency":"MXN","cat":"House Build","note":""},{"id":2052,"date":"2026-01-27","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2053,"date":"2026-01-28","amount":5000,"currency":"MXN","cat":"House Build","note":""},{"id":2054,"date":"2026-01-28","amount":230,"currency":"MXN","cat":"Personal","note":""},{"id":2068,"date":"2026-01-31","amount":2444.47,"currency":"USD","cat":"ATM / BBVA","note":"est. Jan ATM div17"},{"id":2069,"date":"2026-02-11","amount":6000,"currency":"MXN","cat":"Charity","note":""},{"id":2070,"date":"2026-02-13","amount":500,"currency":"MXN","cat":"House Build","note":""},{"id":2071,"date":"2026-02-14","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2072,"date":"2026-02-14","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2073,"date":"2026-02-14","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2074,"date":"2026-02-15","amount":800,"currency":"MXN","cat":"Food","note":""},{"id":2075,"date":"2026-02-15","amount":2370,"currency":"MXN","cat":"House Build","note":""},{"id":2076,"date":"2026-02-15","amount":1300,"currency":"MXN","cat":"Dogs","note":""},{"id":2096,"date":"2026-02-15","amount":1082.0,"currency":"USD","cat":"Home Expenses","note":""},{"id":2097,"date":"2026-02-15","amount":161.03,"currency":"USD","cat":"Food","note":""},{"id":2098,"date":"2026-02-15","amount":67.61,"currency":"USD","cat":"Fuel","note":""},{"id":2099,"date":"2026-02-15","amount":4.95,"currency":"USD","cat":"Entertainment","note":""},{"id":2100,"date":"2026-02-15","amount":178.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2101,"date":"2026-02-15","amount":74.3,"currency":"USD","cat":"Dining Out","note":""},{"id":2102,"date":"2026-02-15","amount":139.0,"currency":"USD","cat":"Misc","note":""},{"id":2103,"date":"2026-02-15","amount":39.63,"currency":"USD","cat":"Subscriptions","note":""},{"id":2104,"date":"2026-02-15","amount":108.32,"currency":"USD","cat":"Phone","note":""},{"id":2105,"date":"2026-02-15","amount":227.59,"currency":"USD","cat":"Travel","note":""},{"id":2106,"date":"2026-02-15","amount":22.0,"currency":"USD","cat":"Books & Edu","note":""},{"id":2107,"date":"2026-02-15","amount":73.01,"currency":"USD","cat":"Internet","note":""},{"id":2108,"date":"2026-02-15","amount":20.4,"currency":"USD","cat":"Charity","note":""},{"id":2109,"date":"2026-02-15","amount":4401.0,"currency":"USD","cat":"ATM / BBVA","note":""},{"id":2077,"date":"2026-02-16","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2078,"date":"2026-02-18","amount":2374,"currency":"MXN","cat":"House Build","note":""},{"id":2079,"date":"2026-02-20","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2080,"date":"2026-02-20","amount":1500,"currency":"MXN","cat":"Food","note":""},{"id":2081,"date":"2026-02-20","amount":9250,"currency":"MXN","cat":"House Build","note":""},{"id":2082,"date":"2026-02-22","amount":3000,"currency":"MXN","cat":"House Build","note":""},{"id":2083,"date":"2026-02-22","amount":80,"currency":"MXN","cat":"Charity","note":""},{"id":2084,"date":"2026-02-23","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2085,"date":"2026-02-24","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2086,"date":"2026-02-25","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2087,"date":"2026-02-25","amount":1000,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2088,"date":"2026-02-26","amount":1539,"currency":"MXN","cat":"Dining Out","note":""},{"id":2089,"date":"2026-02-26","amount":1539,"currency":"MXN","cat":"Food","note":""},{"id":2090,"date":"2026-02-28","amount":110,"currency":"MXN","cat":"Dining Out","note":""},{"id":2091,"date":"2026-02-28","amount":1775,"currency":"MXN","cat":"Food","note":""},{"id":2092,"date":"2026-02-28","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2093,"date":"2026-02-28","amount":440,"currency":"MXN","cat":"House Build","note":""},{"id":2094,"date":"2026-02-28","amount":110,"currency":"MXN","cat":"Personal","note":""},{"id":2095,"date":"2026-02-28","amount":35233,"currency":"MXN","cat":"House Build","note":"itemized build spend"},{"id":2110,"date":"2026-03-01","amount":500,"currency":"MXN","cat":"Dining Out","note":""},{"id":2111,"date":"2026-03-01","amount":260,"currency":"MXN","cat":"Dogs","note":""},{"id":2112,"date":"2026-03-03","amount":400,"currency":"MXN","cat":"Dining Out","note":""},{"id":2113,"date":"2026-03-03","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2114,"date":"2026-03-04","amount":340,"currency":"MXN","cat":"Dining Out","note":""},{"id":2115,"date":"2026-03-05","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2116,"date":"2026-03-05","amount":100,"currency":"MXN","cat":"Personal","note":""},{"id":2117,"date":"2026-03-06","amount":320,"currency":"MXN","cat":"Dining Out","note":""},{"id":2118,"date":"2026-03-06","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2119,"date":"2026-03-07","amount":2180,"currency":"MXN","cat":"Food","note":""},{"id":2120,"date":"2026-03-07","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2121,"date":"2026-03-07","amount":480,"currency":"MXN","cat":"Dogs","note":""},{"id":2122,"date":"2026-03-08","amount":200,"currency":"MXN","cat":"Dining Out","note":""},{"id":2123,"date":"2026-03-08","amount":1500,"currency":"MXN","cat":"House Build","note":""},{"id":2124,"date":"2026-03-09","amount":300,"currency":"MXN","cat":"Dining Out","note":""},{"id":2125,"date":"2026-03-09","amount":6000,"currency":"MXN","cat":"House Build","note":""},{"id":2126,"date":"2026-03-10","amount":315,"currency":"MXN","cat":"Food","note":""},{"id":2127,"date":"2026-03-10","amount":50,"currency":"MXN","cat":"Dogs","note":""},{"id":2128,"date":"2026-03-11","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2129,"date":"2026-03-11","amount":40,"currency":"MXN","cat":"Dogs","note":""},{"id":2130,"date":"2026-03-12","amount":1560,"currency":"MXN","cat":"Food","note":""},{"id":2131,"date":"2026-03-12","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2132,"date":"2026-03-13","amount":150,"currency":"MXN","cat":"Fuel","note":""},{"id":2133,"date":"2026-03-14","amount":970,"currency":"MXN","cat":"Food","note":""},{"id":2134,"date":"2026-03-15","amount":300,"currency":"MXN","cat":"Food","note":""},{"id":2178,"date":"2026-03-15","amount":120.85,"currency":"USD","cat":"Food","note":""},{"id":2179,"date":"2026-03-15","amount":178.0,"currency":"USD","cat":"Health Insurance","note":""},{"id":2180,"date":"2026-03-15","amount":15.0,"currency":"USD","cat":"Subscriptions","note":""},{"id":2181,"date":"2026-03-15","amount":108.32,"currency":"USD","cat":"Phone","note":""},{"id":2182,"date":"2026-03-15","amount":25.0,"currency":"USD","cat":"Books & Edu","note":""},{"id":2183,"date":"2026-03-15","amount":73.0,"currency":"USD","cat":"Internet","note":""},{"id":2135,"date":"2026-03-16","amount":730,"currency":"MXN","cat":"Dining Out","note":""},{"id":2136,"date":"2026-03-16","amount":650,"currency":"MXN","cat":"Food","note":""},{"id":2137,"date":"2026-03-16","amount":300,"currency":"MXN","cat":"House Build","note":""},{"id":2138,"date":"2026-03-17","amount":365,"currency":"MXN","cat":"Food","note":""},{"id":2139,"date":"2026-03-18","amount":654,"currency":"MXN","cat":"Food","note":""},{"id":2140,"date":"2026-03-18","amount":10800,"currency":"MXN","cat":"Horses","note":""},{"id":2141,"date":"2026-03-20","amount":380,"currency":"MXN","cat":"Dining Out","note":""},{"id":2142,"date":"2026-03-20","amount":500,"currency":"MXN","cat":"Food","note":""},{"id":2143,"date":"2026-03-20","amount":215,"currency":"MXN","cat":"Fuel","note":""},{"id":2144,"date":"2026-03-20","amount":2650,"currency":"MXN","cat":"House Build","note":""},{"id":2145,"date":"2026-03-20","amount":1300,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2146,"date":"2026-03-20","amount":190,"currency":"MXN","cat":"Dogs","note":""},{"id":2147,"date":"2026-03-21","amount":100,"currency":"MXN","cat":"Food","note":""},{"id":2148,"date":"2026-03-21","amount":1435,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2149,"date":"2026-03-21","amount":150,"currency":"MXN","cat":"Dogs","note":""},{"id":2150,"date":"2026-03-22","amount":195,"currency":"MXN","cat":"Dining Out","note":""},{"id":2151,"date":"2026-03-22","amount":580,"currency":"MXN","cat":"Food","note":""},{"id":2152,"date":"2026-03-22","amount":4200,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2153,"date":"2026-03-22","amount":1100,"currency":"MXN","cat":"Dogs","note":""},{"id":2154,"date":"2026-03-23","amount":350,"currency":"MXN","cat":"Food","note":""},{"id":2155,"date":"2026-03-24","amount":50,"currency":"MXN","cat":"Fuel","note":""},{"id":2156,"date":"2026-03-24","amount":11200,"currency":"MXN","cat":"House Build","note":""},{"id":2157,"date":"2026-03-25","amount":250,"currency":"MXN","cat":"Dining Out","note":""},{"id":2158,"date":"2026-03-25","amount":70,"currency":"MXN","cat":"Food","note":""},{"id":2159,"date":"2026-03-25","amount":450,"currency":"MXN","cat":"Dogs","note":""},{"id":2160,"date":"2026-03-25","amount":500,"currency":"MXN","cat":"Dani","note":""},{"id":2161,"date":"2026-03-26","amount":120,"currency":"MXN","cat":"Dining Out","note":""},{"id":2162,"date":"2026-03-26","amount":395,"currency":"MXN","cat":"Food","note":""},{"id":2163,"date":"2026-03-26","amount":50,"currency":"MXN","cat":"Personal","note":""},{"id":2164,"date":"2026-03-27","amount":840,"currency":"MXN","cat":"Dining Out","note":""},{"id":2165,"date":"2026-03-27","amount":300,"currency":"MXN","cat":"Food","note":""},{"id":2166,"date":"2026-03-27","amount":100,"currency":"MXN","cat":"Fuel","note":""},{"id":2167,"date":"2026-03-27","amount":500,"currency":"MXN","cat":"Dani","note":"friend"},{"id":2168,"date":"2026-03-28","amount":150,"currency":"MXN","cat":"Food","note":""},{"id":2169,"date":"2026-03-28","amount":200,"currency":"MXN","cat":"Dani","note":"weed"},{"id":2170,"date":"2026-03-29","amount":300,"currency":"MXN","cat":"Dining Out","note":""},{"id":2171,"date":"2026-03-29","amount":180,"currency":"MXN","cat":"Food","note":""},{"id":2172,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Fuel","note":""},{"id":2173,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Dogs","note":""},{"id":2174,"date":"2026-03-29","amount":200,"currency":"MXN","cat":"Dani","note":"cell"},{"id":2175,"date":"2026-03-30","amount":1000,"currency":"MXN","cat":"Food","note":""},{"id":2176,"date":"2026-03-30","amount":170,"currency":"MXN","cat":"Home Expenses","note":""},{"id":2177,"date":"2026-03-30","amount":50,"currency":"MXN","cat":"Dogs","note":""},{"id":2184,"date":"2026-03-31","amount":4508.82,"currency":"USD","cat":"ATM / BBVA","note":"est. Mar ATM div17"},{"id": 4000, "date": "2026-04-01", "amount": 360.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4001, "date": "2026-04-02", "amount": 200.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4002, "date": "2026-04-02", "amount": 560.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4003, "date": "2026-04-03", "amount": 200.0, "currency": "MXN", "cat": "Fuel", "note": ""}, {"id": 4004, "date": "2026-04-04", "amount": 150.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4005, "date": "2026-04-04", "amount": 700.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4006, "date": "2026-04-05", "amount": 160.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4007, "date": "2026-04-05", "amount": 150.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4008, "date": "2026-04-05", "amount": 10000.0, "currency": "MXN", "cat": "House Build", "note": ""}, {"id": 4009, "date": "2026-04-06", "amount": 400.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4010, "date": "2026-04-06", "amount": 300.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4011, "date": "2026-04-06", "amount": 200.0, "currency": "MXN", "cat": "Fuel", "note": ""}, {"id": 4012, "date": "2026-04-07", "amount": 600.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4013, "date": "2026-04-07", "amount": 930.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4014, "date": "2026-04-07", "amount": 3000.0, "currency": "MXN", "cat": "Personal", "note": ""}, {"id": 4015, "date": "2026-04-08", "amount": 300.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4016, "date": "2026-04-08", "amount": 300.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4017, "date": "2026-04-09", "amount": 680.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4018, "date": "2026-04-09", "amount": 400.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4019, "date": "2026-04-09", "amount": 200.0, "currency": "MXN", "cat": "Fuel", "note": ""}, {"id": 4020, "date": "2026-04-09", "amount": 100.0, "currency": "MXN", "cat": "Dogs", "note": ""}, {"id": 4021, "date": "2026-04-10", "amount": 210.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4022, "date": "2026-04-10", "amount": 300.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4023, "date": "2026-04-11", "amount": 275.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4024, "date": "2026-04-11", "amount": 570.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4025, "date": "2026-04-11", "amount": 235.0, "currency": "MXN", "cat": "Fuel", "note": ""}, {"id": 4026, "date": "2026-04-11", "amount": 100.0, "currency": "MXN", "cat": "Dogs", "note": ""}, {"id": 4027, "date": "2026-04-11", "amount": 260.0, "currency": "MXN", "cat": "Gallinas", "note": ""}, {"id": 4028, "date": "2026-04-11", "amount": 500.0, "currency": "MXN", "cat": "Dani", "note": ""}, {"id": 4029, "date": "2026-04-12", "amount": 610.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4030, "date": "2026-04-13", "amount": 400.0, "currency": "MXN", "cat": "Food", "note": ""}, {"id": 4031, "date": "2026-04-13", "amount": 100.0, "currency": "MXN", "cat": "Dogs", "note": ""}, {"id": 4032, "date": "2026-04-13", "amount": 320.0, "currency": "MXN", "cat": "Personal", "note": ""}, {"id": 4033, "date": "2026-04-13", "amount": 250.0, "currency": "MXN", "cat": "Dani", "note": ""}, {"id": 4034, "date": "2026-04-14", "amount": 105.0, "currency": "MXN", "cat": "Dining Out", "note": ""}, {"id": 4035, "date": "2026-04-14", "amount": 223.0, "currency": "MXN", "cat": "Food", "note": ""}];
+  saveAll();
 }
 
-document.addEventListener('keydown', e => {
-  if (document.getElementById('pin-screen').style.display === 'none') return;
-  if (e.key >= '0' && e.key <= '9') pinKey(e.key);
-  if (e.key === 'Backspace') pinKey('del');
-  if (e.key === 'Escape') pinKey('c');
-});
+function seedIncome() {
+  if (income.length > 0) return;
+  income = [
+    {"id":3000,"date":"2026-01-15","amount":3013.15,"source":"HorseClass — Instructor Pay","note":""},
+    {"id":3001,"date":"2026-01-15","amount":1158.00,"source":"Jellyfish","note":""},
+    {"id":3002,"date":"2026-01-15","amount":415.93,"source":"CC Rewards","note":""},
+    {"id":3003,"date":"2026-01-15","amount":118.96,"source":"Other","note":""},
+    {"id":3004,"date":"2026-01-15","amount":140.63,"source":"YouTube","note":""},
+    {"id":3005,"date":"2026-02-15","amount":4410.00,"source":"HorseClass — Owner Distribution","note":""},
+    {"id":3006,"date":"2026-02-15","amount":558.00,"source":"Jellyfish","note":""},
+    {"id":3007,"date":"2026-02-15","amount":135.77,"source":"YouTube","note":""},
+    {"id":3008,"date":"2026-03-15","amount":1079.00,"source":"Jellyfish","note":""},
+    {"id":3009,"date":"2026-03-15","amount":129.16,"source":"YouTube","note":""}
+  ];
+  saveAll();
+}
 
-// Check auth on load
-checkPinAuth();
 
 // ══════════════════════════════════════════════
 // START
